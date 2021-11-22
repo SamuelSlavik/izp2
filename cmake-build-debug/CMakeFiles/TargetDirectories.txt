@@ -1,0 +1,3 @@
+/home/grimm/Programming/C/setcal/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/grimm/Programming/C/setcal/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/grimm/Programming/C/setcal/cmake-build-debug/CMakeFiles/setcal.dir
