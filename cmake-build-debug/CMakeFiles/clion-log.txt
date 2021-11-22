@@ -1,0 +1,1 @@
+CMakeLists.txt not found in /home/samuel/CLionProjects/izp2project Select CMakeLists.txt
