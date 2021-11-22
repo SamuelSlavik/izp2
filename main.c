@@ -15,6 +15,12 @@ typedef struct list {
     int size;
 } list;
 
+typedef struct {
+    char * identifier;
+    int first_id;
+    int second_id;
+}Operation;
+
 list create_list(){
     list list = {NULL, 0};
     return list;
@@ -63,22 +69,79 @@ void read_words(list *list,char *line){
         token = strtok(NULL, s);
     }
 }
-
-int main() {
+/*
+char *readline (FILE *fp){
+    size_t capacity  = 0u;
+    size_t length = 0u;
+    size_t chunk_size = 64u;
+    size_t offset = 0u;
+    char *memory = NULL;
+    char *tmp;
+    do {
+        capacity+=chunnk_size;
+        if((tmp = realpath(memory, capacity))) == NULL){
+            free(memory);
+            return NULL;
+        }
+        memory = tmp;
+        tmp = memory + length - offset;
+        if(fgets(tmp, chunk_size+offset, file) == NULL) break;
+        offset = 1;
+        length += chunk_size;
+    }
+    while (strchr(tmp, '\n') == NULL );
+    if (length == 0u || ferror(fp)){
+        free(memory);
+        return NULL;
+    }
+    return memory;
+}
+*/
+int main(int argc, char **argv) {
+    if (argv[1] == NULL){
+        return 2;
+    }
+    printf("%d", argc);
     FILE *fp;
     char *line = NULL;
     size_t len = 0;
     size_t read;
     list universum =  create_list();
-
-    fp = fopen("/home/grimm/Programming/C/setcal/file.txt","r");
-    if (fp == NULL)return 2;
+    /*line = readline(fp);*/
+    fp = fopen(argv[1], "r");
+    if (fp == NULL) return 2;
+    char **data = NULL;
+    int index = 1;
     while ((read = getline(&line, &len, fp) != -1)){
-        printf("%s\n", line);
+        data[index] = malloc(sizeof (line));
+        strcpy(data[index], line);
+        index++;
+        printf("line is %s \n", data[index]);
+        switch (line[0]) {
+            case 'U':
+                read_words(&universum,line);
+                break;
+            case 'S':
+                //read_words(&,line);
+                break;
+            case 'R':
+
+                break;
+            case 'C':
+
+                break;
+            default:
+                fprintf(stderr,"wrong identifier");
+                return 2;
+
+
+        }
+        //printf("%s\n", line);
         read_words(&universum,line);
     }
     fclose(fp);
     if(line) free(line);
+    free(data);
     /*
     add_item(&universum, "Apple");
     add_item(&universum, "Pear");
