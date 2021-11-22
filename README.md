@@ -1,2 +1,2 @@
 # izp2
-izp 2. projekt
+IZP 2. projekt
