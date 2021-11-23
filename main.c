@@ -61,54 +61,54 @@ void destroy_list(list *list){
         current = next;
     }
 }
-//checks if the word is correct (to True/False or numbers)
-// rewrite it if necessary, only prototype
-bool check_word(char *token){
-    for(size_t i = 0; i < strlen(token);i++){
-        if (! ((token[i] >='a' && token[i] <='z') || (token[i] >='A' && token[i] <='Z') || token[i] == '\n' || token[i] == '\0') ){
-            return false;
-        }
-    }
-    return true;
-}
+typedef struct {
+    int num_of_words;
+    char **array;
+}Parsed_line_t;
 
-bool parse_words(char *line){
+Parsed_line_t parse_words(char *line){
+    Parsed_line_t parsed_line = {0, NULL};
     int counter = 0;
     unsigned long len = strlen(line);
     char *help_string = malloc(sizeof (char) * len);
     strcpy(help_string,line);
     const char delim[2] = " ";
     char *token;
-
     token = strtok(help_string, delim);
-
     while( token != NULL ) {
         counter++;
         printf( "word is %s\n", token );
 
         token = strtok(NULL, delim);
     }
+    parsed_line.num_of_words = counter;
     strcpy(help_string,line);
-    char *array[counter];
-
     int i = 0;
-    array[i] = (token = strtok(help_string, delim));
-    printf("end me %s \n", array[i]);
+    parsed_line.array = (token = strtok(help_string, delim));
+    //printf("end me %s \n", array[i]);
     while( token != NULL ) {
         i++;
         token = strtok(NULL, delim);
-        array[i] = token;
-        printf("end me %s \n", array[i]);
+        parsed_line.array[i] = token;
+        //printf("end me %s \n", array[i]);
     }
-
     free(help_string);
+    return parsed_line;
+}
+void destroy_array(char **array){
+    free(*array);
+    free(array);
+}
+
+bool check_duplicates(char *line){
+    Parsed_line_t parsed_line = parse_words(line) ;
+    for(int i =0;i <parsed_line.num_of_words;i++) {
+        //printf("parsed line is %s",(char *) parsed_line.array);
+    }
+    destroy_array(parsed_line.array);
     return true;
 }
-/*
-bool check_duplicates(char *line, int size){
-    parse_words(line) ;
-}
-*/
+
 // edge case what if peachtrue ???
 bool check_line(char *line){
     for (size_t i = 0; i < sizeof (line); i++) {
@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
         switch (line[0]) {
             case 'U':
                 if (!is_universum) {
-                    parse_words(line);
+                    check_duplicates(line);
                     if(!check_line(line)){
                         fprintf(stderr,"Wrong format");
                         return 2;
