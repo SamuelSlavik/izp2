@@ -1,3 +1,5 @@
 U Apple Lemon Orange Banana Peach Coconut
 S Melon Raspberry
 S Ananas Coconut
+R ( Melon Ananas) (Melon Coconut)
+C codomain 1
