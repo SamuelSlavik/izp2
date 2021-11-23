@@ -22,9 +22,6 @@ typedef struct {
     list C;
 }Dict;
 
-//listkey, linekey
-// listkey = pointer na list, ma value char expl 'U'
-//line key = value = char , pointer na *line value = key aka 'u' etc
 list create_list(){
     list list = {NULL, 0};
     return list;
@@ -74,27 +71,59 @@ bool check_word(char *token){
     }
     return true;
 }
-/*
-bool read_words(list *list,char *line){
-    const char s[2] = " ";
-    char *token;
-    token = strtok(line, s);
-    while (token != NULL){
-        if(!check_word(token)){
 
-            fprintf(stderr,"wrong word");
-            // not sure if the program should end
+bool parse_words(char *line){
+    int counter = 0;
+    unsigned long len = strlen(line);
+    char *help_string = malloc(sizeof (char) * len);
+    strcpy(help_string,line);
+    const char delim[2] = " ";
+    char *token;
+
+    token = strtok(help_string, delim);
+
+    while( token != NULL ) {
+        counter++;
+        printf( "word is %s\n", token );
+
+        token = strtok(NULL, delim);
+    }
+    strcpy(help_string,line);
+    char *array[counter];
+
+    int i = 0;
+    array[i] = (token = strtok(help_string, delim));
+    printf("end me %s \n", array[i]);
+    while( token != NULL ) {
+        i++;
+        token = strtok(NULL, delim);
+        array[i] = token;
+        printf("end me %s \n", array[i]);
+    }
+
+    free(help_string);
+    return true;
+}
+/*
+bool check_duplicates(char *line, int size){
+    parse_words(line) ;
+}
+*/
+// edge case what if peachtrue ???
+bool check_line(char *line){
+    for (size_t i = 0; i < sizeof (line); i++) {
+        if(line[i] >= '0' && line[i]<='9'){
             return false;
         }
     }
+    if (strstr(line, "true")|| strstr(line, "false")) return false;
     return true;
 }
- */
 
 int main(int argc, char **argv) {
     printf("num of args is %d \n", argc);
     if (argv[1] == NULL){
-        return 2;
+        return 5;
     }
     FILE *fp;
     char *line = NULL;
@@ -110,6 +139,11 @@ int main(int argc, char **argv) {
         switch (line[0]) {
             case 'U':
                 if (!is_universum) {
+                    parse_words(line);
+                    if(!check_line(line)){
+                        fprintf(stderr,"Wrong format");
+                        return 2;
+                    }
                     is_universum = true;
                     dictionary.U = line;
                     printf("dic is working %s\n",dictionary.U);
@@ -120,10 +154,18 @@ int main(int argc, char **argv) {
                 }
                 break;
             case 'S':
+                if(!check_line(line)){
+                    fprintf(stderr,"Wrong format");
+                    return 2;
+                }
                 add_item(&dictionary.S,line);
                 printf("set is %s \n", dictionary.S.top->value);
                 break;
             case 'R':
+                if(!check_line(line)){
+                    fprintf(stderr,"Wrong format");
+                    return 2;
+                }
                 add_item(&dictionary.R,line);
                 printf("relation is %s \n", dictionary.R.top->value);
                 break;
@@ -142,8 +184,8 @@ int main(int argc, char **argv) {
     if(line) free(line);
     destroy_list(&universum);
     destroy_list(&dictionary.S);
-    destroy_list(&dictionary.C);
     destroy_list(&dictionary.R);
+    destroy_list(&dictionary.C);
     destroy_list(&data);
     return 0;
 }
