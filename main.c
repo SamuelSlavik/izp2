@@ -54,7 +54,7 @@ void destroy_list(list *list){
         current = next;
     }
 }
-//checks if the word is corect (to True/False or numbers)
+//checks if the word is correct (to True/False or numbers)
 // rewrite it if necessary, only prototype
 bool check_word(char *token){
     for(size_t i = 0; i < strlen(token);i++){
