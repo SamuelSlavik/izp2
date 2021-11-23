@@ -81,6 +81,7 @@ bool read_words(list *list,char *line){
     token = strtok(line, s);
     while (token != NULL){
         if(!check_word(token)){
+
             fprintf(stderr,"wrong word");
             // not sure if the program should end
             return false;
