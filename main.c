@@ -16,11 +16,15 @@ typedef struct list {
 } list;
 
 typedef struct {
-    char * identifier;
-    int first_id;
-    int second_id;
-}Operation;
+    char *U;
+    list R;
+    list S;
+    list C;
+}Dict;
 
+//listkey, linekey
+// listkey = pointer na list, ma value char expl 'U'
+//line key = value = char , pointer na *line value = key aka 'u' etc
 list create_list(){
     list list = {NULL, 0};
     return list;
@@ -40,6 +44,7 @@ bool list_find(list *list, char *needle){
 void add_item(list *list, char *value){
     list_item *item = malloc(sizeof(list_item) + 1);
     item->value = value;
+    //printf("line is %s\n", item->value);
     list_item *current = list->top;
     if (current == NULL){
         list->top = item;
@@ -59,16 +64,90 @@ void destroy_list(list *list){
         current = next;
     }
 }
-void read_words(list *list,char *line){
+//checks if the word is correct (to True/False or numbers)
+// rewrite it if necessary, only prototype
+bool check_word(char *token){
+    for(size_t i = 0; i < strlen(token);i++){
+        if (! ((token[i] >='a' && token[i] <='z') || (token[i] >='A' && token[i] <='Z') || token[i] == '\n' || token[i] == '\0') ){
+            return false;
+        }
+    }
+    return true;
+}
+/*
+bool read_words(list *list,char *line){
     const char s[2] = " ";
     char *token;
     token = strtok(line, s);
     while (token != NULL){
-        add_item(list, token);
-        printf("%s\n", token);
-        token = strtok(NULL, s);
+        if(!check_word(token)){
+
+            fprintf(stderr,"wrong word");
+            // not sure if the program should end
+            return false;
+        }
     }
+    return true;
 }
+ */
+
+int main(int argc, char **argv) {
+    printf("num of args is %d \n", argc);
+    if (argv[1] == NULL){
+        return 2;
+    }
+    FILE *fp;
+    char *line = NULL;
+    size_t len = 0;
+    list universum =  create_list();
+    Dict dictionary = {NULL,create_list(), create_list(), create_list()};
+    list data =  create_list();
+    bool is_universum = false;
+    fp = fopen(argv[1], "r");
+    if (fp == NULL) return 2;
+    while ((getline(&line, &len, fp) != -1)){
+        add_item(&data, line);
+        switch (line[0]) {
+            case 'U':
+                if (!is_universum) {
+                    is_universum = true;
+                    dictionary.U = line;
+                    printf("dic is working %s\n",dictionary.U);
+                }
+                else{
+                    fprintf(stderr,"More than 1 universum");
+                    return 2;
+                }
+                break;
+            case 'S':
+                add_item(&dictionary.S,line);
+                printf("set is %s \n", dictionary.S.top->value);
+                break;
+            case 'R':
+                add_item(&dictionary.R,line);
+                printf("relation is %s \n", dictionary.R.top->value);
+                break;
+            case 'C':
+                add_item(&dictionary.C,line);
+                printf("operation is %s \n", dictionary.C.top->value);
+                break;
+            default:
+                fprintf(stderr,"wrong identifier");
+                return 2;
+
+
+        }
+    }
+    fclose(fp);
+    if(line) free(line);
+    destroy_list(&universum);
+    destroy_list(&dictionary.S);
+    destroy_list(&dictionary.C);
+    destroy_list(&dictionary.R);
+    destroy_list(&data);
+    return 0;
+}
+
 /*
 char *readline (FILE *fp){
     size_t capacity  = 0u;
@@ -97,56 +176,3 @@ char *readline (FILE *fp){
     return memory;
 }
 */
-int main(int argc, char **argv) {
-    if (argv[1] == NULL){
-        return 2;
-    }
-    printf("%d", argc);
-    FILE *fp;
-    char *line = NULL;
-    size_t len = 0;
-    size_t read;
-    list universum =  create_list();
-    /*line = readline(fp);*/
-    fp = fopen(argv[1], "r");
-    if (fp == NULL) return 2;
-    char **data = NULL;
-    int index = 1;
-    while ((read = getline(&line, &len, fp) != -1)){
-        data[index] = malloc(sizeof (line));
-        strcpy(data[index], line);
-        index++;
-        printf("line is %s \n", data[index]);
-        switch (line[0]) {
-            case 'U':
-                read_words(&universum,line);
-                break;
-            case 'S':
-                //read_words(&,line);
-                break;
-            case 'R':
-
-                break;
-            case 'C':
-
-                break;
-            default:
-                fprintf(stderr,"wrong identifier");
-                return 2;
-
-
-        }
-        //printf("%s\n", line);
-        read_words(&universum,line);
-    }
-    fclose(fp);
-    if(line) free(line);
-    free(data);
-    /*
-    add_item(&universum, "Apple");
-    add_item(&universum, "Pear");
-    add_item(&universum, "Chery");
-     */
-    destroy_list(&universum);
-    return 0;
-}
