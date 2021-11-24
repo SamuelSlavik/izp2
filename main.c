@@ -83,7 +83,7 @@ bool parse_words(char *line){
     unsigned long len = strlen(line);
     char *help_string = malloc(sizeof (char) * len);
     strcpy(help_string,line);
-    const char delim[2] = " ";
+    const char delim[4] = " \n()";
     char *token;
     token = strtok(help_string, delim);
     while( token != NULL ) {
@@ -113,22 +113,42 @@ bool parse_words(char *line){
     return true;
 }
 
-bool check_with_uni(Dict dictionary){
+bool check_set_with_uni(Dict dictionary){
     char *help_string = malloc(sizeof (char) * strlen(dictionary.S.top->value));
     strcpy(help_string,dictionary.S.top->value);
-    const char delim[2] = " ";
+    const char delim[4] = " \n()";
     char *token;
     token = strtok(help_string, delim);
     while( token != NULL ) {
         token = strtok(NULL, delim);
-        if((strstr(dictionary.U,token) == NULL)){
+        if (token == NULL) break;
+        if((strstr(dictionary.U, token) == NULL)){
             fprintf(stderr,"Word is not in universum");
             free(help_string);
             return false;
         }
-
     }
     printf("sdasd %s \n",dictionary.S.top->value);
+    free(help_string);
+    return true;
+}
+
+bool check_rel_with_uni(Dict dictionary){
+    char *help_string = malloc(sizeof (char) * strlen(dictionary.R.top->value));
+    strcpy(help_string,dictionary.R.top->value);
+    const char delim[4] = " \n()";
+    char *token;
+    token = strtok(help_string, delim);
+    while( token != NULL ) {
+        token = strtok(NULL, delim);
+        if (token == NULL) break;
+        if((strstr(dictionary.U, token) == NULL)){
+            fprintf(stderr,"Word is not in universum");
+            free(help_string);
+            return false;
+        }
+    }
+    printf("sdasd %s \n",dictionary.R.top->value);
     free(help_string);
     return true;
 }
@@ -162,10 +182,11 @@ int main(int argc, char **argv) {
         switch (line[0]) {
             case 'U':
                 if (!is_universum) {
-                    if(!parse_words(line))return 2;
+                    if(!parse_words(line)){error = true;break;}
                     if(!check_line(line)){
                         fprintf(stderr,"Wrong format");
-                        return 2;
+                        error = true;
+                        break;
                     }
                     is_universum = true;
                     help_string = malloc(sizeof (char) * strlen(line));
@@ -175,18 +196,19 @@ int main(int argc, char **argv) {
                 }
                 else{
                     fprintf(stderr,"More than 1 universum");
-                    return 2;
+                    error = true;
                 }
                 break;
             case 'S':
-                if(!parse_words(line))return 2;
+                if(!parse_words(line)){error = true;break;}
                 if(!check_line(line)){
                     fprintf(stderr,"Wrong format");
-                    return 2;
+                    error = true;
+                    break;
                 }
                 add_item(&dictionary.S,line);
                 printf("set is %s \n", dictionary.S.top->value);
-                if(!check_with_uni(dictionary)){
+                if(!check_set_with_uni(dictionary)){
                     error = true;
                     break;
                 }
@@ -194,9 +216,11 @@ int main(int argc, char **argv) {
             case 'R':
                 if(!check_line(line)){
                     fprintf(stderr,"Wrong format");
-                    return 2;
+                    error = true;
+                    break;
                 }
                 add_item(&dictionary.R,line);
+                if(!check_rel_with_uni(dictionary)){ error = true;break;}
                 printf("relation is %s \n", dictionary.R.top->value);
                 break;
             case 'C':
