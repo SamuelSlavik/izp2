@@ -46,6 +46,7 @@ void add_item(list *list, char *value){
     if (current == NULL){
         list->top = item;
         list->size++;
+        item->next = NULL;
         return;
     }
     item->next = current;
@@ -61,13 +62,23 @@ void destroy_list(list *list){
         current = next;
     }
 }
-typedef struct {
-    int num_of_words;
-    char **array;
-}Parsed_line_t;
+bool check_duplicates(char *substring, char *line){
+    int count = 0;
+    const char *tmp = line;
+    tmp = strstr(tmp, substring);
+    while(tmp)
+    {
+        count++;
+        tmp++;
+        tmp = strstr(tmp, substring);
+    }
+    if(count != 1){
+        return false;
+    }
+    return true;
+}
 
-Parsed_line_t parse_words(char *line){
-    Parsed_line_t parsed_line = {0, NULL};
+bool parse_words(char *line){
     int counter = 0;
     unsigned long len = strlen(line);
     char *help_string = malloc(sizeof (char) * len);
@@ -78,34 +89,47 @@ Parsed_line_t parse_words(char *line){
     while( token != NULL ) {
         counter++;
         printf( "word is %s\n", token );
-
         token = strtok(NULL, delim);
     }
-    parsed_line.num_of_words = counter;
+    char *array[counter];
     strcpy(help_string,line);
     int i = 0;
-    parsed_line.array = (token = strtok(help_string, delim));
+    array[i] = (token = strtok(help_string, delim));
     //printf("end me %s \n", array[i]);
     while( token != NULL ) {
         i++;
         token = strtok(NULL, delim);
-        parsed_line.array[i] = token;
-        //printf("end me %s \n", array[i]);
+        array[i] = token;
+        //printf("word is %s\n", array[i]);
     }
+    for(int j = 1; j < counter-1;j++) {
+        if( !check_duplicates(array[j], line)){
+            fprintf(stderr,"duplicit words");
+            return false;
+        }
+    }
+
     free(help_string);
-    return parsed_line;
-}
-void destroy_array(char **array){
-    free(*array);
-    free(array);
+    return true;
 }
 
-bool check_duplicates(char *line){
-    Parsed_line_t parsed_line = parse_words(line) ;
-    for(int i =0;i <parsed_line.num_of_words;i++) {
-        //printf("parsed line is %s",(char *) parsed_line.array);
+bool check_with_uni(Dict dictionary){
+    char *help_string = malloc(sizeof (char) * strlen(dictionary.S.top->value));
+    strcpy(help_string,dictionary.S.top->value);
+    const char delim[2] = " ";
+    char *token;
+    token = strtok(help_string, delim);
+    while( token != NULL ) {
+        token = strtok(NULL, delim);
+        if((strstr(dictionary.U,token) == NULL)){
+            fprintf(stderr,"Word is not in universum");
+            free(help_string);
+            return false;
+        }
+
     }
-    destroy_array(parsed_line.array);
+    printf("sdasd %s \n",dictionary.S.top->value);
+    free(help_string);
     return true;
 }
 
@@ -128,24 +152,25 @@ int main(int argc, char **argv) {
     FILE *fp;
     char *line = NULL;
     size_t len = 0;
-    list universum =  create_list();
     Dict dictionary = {NULL,create_list(), create_list(), create_list()};
-    list data =  create_list();
     bool is_universum = false;
+    bool error = false;
     fp = fopen(argv[1], "r");
+    char *help_string;
     if (fp == NULL) return 2;
-    while ((getline(&line, &len, fp) != -1)){
-        add_item(&data, line);
+    while ((getline(&line, &len, fp) != -1) && error==false){
         switch (line[0]) {
             case 'U':
                 if (!is_universum) {
-                    check_duplicates(line);
+                    if(!parse_words(line))return 2;
                     if(!check_line(line)){
                         fprintf(stderr,"Wrong format");
                         return 2;
                     }
                     is_universum = true;
-                    dictionary.U = line;
+                    help_string = malloc(sizeof (char) * strlen(line));
+                    strcpy(help_string,line);
+                    dictionary.U = help_string;
                     printf("dic is working %s\n",dictionary.U);
                 }
                 else{
@@ -154,12 +179,17 @@ int main(int argc, char **argv) {
                 }
                 break;
             case 'S':
+                if(!parse_words(line))return 2;
                 if(!check_line(line)){
                     fprintf(stderr,"Wrong format");
                     return 2;
                 }
                 add_item(&dictionary.S,line);
                 printf("set is %s \n", dictionary.S.top->value);
+                if(!check_with_uni(dictionary)){
+                    error = true;
+                    break;
+                }
                 break;
             case 'R':
                 if(!check_line(line)){
@@ -180,13 +210,14 @@ int main(int argc, char **argv) {
 
         }
     }
+
     fclose(fp);
     if(line) free(line);
-    destroy_list(&universum);
+    if (help_string) free(help_string);
     destroy_list(&dictionary.S);
     destroy_list(&dictionary.R);
     destroy_list(&dictionary.C);
-    destroy_list(&data);
+    if(error)return 2;
     return 0;
 }
 
