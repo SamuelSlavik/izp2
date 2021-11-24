@@ -63,11 +63,10 @@ void destroy_list(list *list){
 }
 
 
-typedef char **array;
 //////////////////////////////////////////////////////////////////////////
 typedef struct {
     int num_of_words;
-    array array;
+    char **array;
 }Parsed_line_t;
 
 Parsed_line_t parse_words(char *line){
@@ -87,20 +86,29 @@ Parsed_line_t parse_words(char *line){
     }
     parsed_line.num_of_words = counter;
     strcpy(help_string,line);
-    char** array = malloc(sizeof (int) * counter);
+
+    //char** array = malloc(sizeof (char) * counter);
+
     int i = 0;
     //array[0] = (token = strtok(help_string, delim));
     //printf("end me %s \n", array[i]);
     token = strtok(help_string, delim);
     while( i < counter ) {
-        array[i] = token;
-        printf("end me %s \n", array[i]);
+
+        parsed_line.array = (char **) realloc(parsed_line.array, (i + 1) * sizeof(*parsed_line.array));
+        parsed_line.array[i] = (char *)malloc(sizeof (char) * counter);
+        parsed_line.array[i] = token;
+        printf("end me %s \n", parsed_line.array[i]);
         i++;
         token = strtok(NULL, delim);
+        //parsed_line.array[i] = array[i];
     }
-    parsed_line.array = array;
+    for(int i = 0; i < parsed_line.num_of_words;i++) {
+        printf("riadok je %s \n", parsed_line.array[i]);
+    }
+
     free(help_string);
-    free(array);
+    //free(array);
     return parsed_line;
 }
 void destroy_array(char **array){
@@ -110,6 +118,8 @@ void destroy_array(char **array){
 
 bool check_duplicates(char *line){
     Parsed_line_t parsed_line = parse_words(line) ;
+    //printf("parsed line is %s \n", parsed_line.array[1]);
+
     for(int i = 0; i < parsed_line.num_of_words;i++) {
         printf("parsed line is %s \n", parsed_line.array[i]);
     }
