@@ -244,32 +244,3 @@ int main(int argc, char **argv) {
     if(error)return 2;
     return 0;
 }
-
-/*
-char *readline (FILE *fp){
-    size_t capacity  = 0u;
-    size_t length = 0u;
-    size_t chunk_size = 64u;
-    size_t offset = 0u;
-    char *memory = NULL;
-    char *tmp;
-    do {
-        capacity+=chunnk_size;
-        if((tmp = realpath(memory, capacity))) == NULL){
-            free(memory);
-            return NULL;
-        }
-        memory = tmp;
-        tmp = memory + length - offset;
-        if(fgets(tmp, chunk_size+offset, file) == NULL) break;
-        offset = 1;
-        length += chunk_size;
-    }
-    while (strchr(tmp, '\n') == NULL );
-    if (length == 0u || ferror(fp)){
-        free(memory);
-        return NULL;
-    }
-    return memory;
-}
-*/

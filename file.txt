@@ -1,5 +1,6 @@
 U Apple Lemon Orange Banana Peach Coconut
 S Apple Lemon
 S Peach Coconut
-R (Lemon Apple) (Banana Melon)
+R (Lemon Apple) (Banana Apple)
 C codomain 1
+C empty 2
