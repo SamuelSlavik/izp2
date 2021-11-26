@@ -1,6 +1,10 @@
 U Apple Lemon Orange Banana Peach Coconut
 S Apple Lemon
-S Peach Coconut
+S Apple Peach
+S Peach Lemon Apple Banana
+S Apple Lemon Peach
 R (Lemon Apple) (Banana Apple)
+C card 2
+C empty 3
+C complement 2
 C codomain 1
-C empty 2
