@@ -47,19 +47,16 @@ bool check_words(char *line){
     token = strtok(help_string, delim);
     while( token != NULL ) {
         counter++;
-        //printf( "word is %s\n", token );
         token = strtok(NULL, delim);
     }
     char *array[counter];
     strcpy(help_string,line);
     int i = 0;
     array[i] = (token = strtok(help_string, delim));
-    //printf("end me %s \n", array[i]);
     while( token != NULL ) {
         i++;
         token = strtok(NULL, delim);
         array[i] = token;
-        //printf("word is %s\n", array[i]);
     }
     for(int j = 1; j < counter-1;j++) {
         if( !check_duplicates(array[j], line)){
@@ -67,11 +64,9 @@ bool check_words(char *line){
             return false;
         }
     }
-
     free(help_string);
     return true;
 }
-
 
 bool check_set_with_uni(char *line,Universum universum){
     char *help_string = malloc(sizeof (char) * strlen(line));
@@ -88,7 +83,6 @@ bool check_set_with_uni(char *line,Universum universum){
             return false;
         }
     }
-    printf("correct\n");
     free(help_string);
     return true;
 }
@@ -156,9 +150,7 @@ bool card(char *line,char **data){
         return false;
     }
     char * string = malloc(sizeof (char)* strlen(data[index]));
-    string = strcpy(string,data[index]);
-    printf("card string is %s", string);
-
+            string = strcpy(string,data[index]);
     const char delim[4] = " \n";
     char *token;
     token = strtok(string, delim);
@@ -167,7 +159,6 @@ bool card(char *line,char **data){
         token = strtok(NULL, delim);
         if (token == NULL) break;
         counter++;
-
     }
     printf("\nnumber of words is %d\n", counter);
     free(string);
@@ -180,12 +171,12 @@ bool empty(char *line, char **data){
     const char delim[4] = " \n";
     char * string = malloc(sizeof (char)* strlen(data[index]));
     string = strcpy(string,data[index]);
-    printf("empty string is %s\n", string);
     char *token;
     token = strtok(string, delim);
     token = strtok(NULL, delim);
-    if (token == NULL)printf("false");
-    else printf("true");
+    if (token == NULL)printf("false\n");
+    else printf("true\n");
+    free(string);
     return true;
 }
 bool complement(char *line, char **data) {
@@ -210,6 +201,9 @@ bool complement(char *line, char **data) {
         }
 
     }
+    free(universum);
+    free(string);
+    return  true;
 }
 void union_f(char *line){ printf("works");}
 void intersect(char *line){ printf("works");}
@@ -232,7 +226,6 @@ void closure_ref(char *line){ printf("works");}
 void closure_sym(char *line){ printf("works");}
 void closure_trans(char *line){ printf("works");}
 void select_random(char *line){ printf("works");}
-
 
 bool check_commands(char *line,char **data, Universum universum){
     char *help_string = malloc(sizeof (char) * strlen(line));
@@ -302,7 +295,6 @@ bool check_commands(char *line,char **data, Universum universum){
     else if (!strcmp(token,"bijective")) {
         bijective(line);
     }
-
         //bonus functions
     else if (!strcmp(token,"closure_sym")) {
         closure_sym(line);
@@ -324,7 +316,6 @@ bool check_commands(char *line,char **data, Universum universum){
     free(help_string);
     return true;
 }
-
 
 bool check_document(FILE *fp,char  **argv, Universum universum){
     char *line = NULL;
@@ -374,21 +365,19 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 if(!check_commands(line,data,universum)){
                     break;
                 }
-
                 break;
             default:
                 fprintf(stderr,"wrong identifier");
                 return 2;
-
-
         }
     }
-    for(int i = 1; i<counter-1;i++){
-        printf("line is %s", data[i]);
-    }
-
-    //check how to access items in listf
+    free(universum.universum);
     fclose(fp);
+    free(line);
+    for(int j = 0; j <counter+1;j++){
+        free(data[j]);
+    }
+    free(data);
     if(error) return false;
     return true;
 }
