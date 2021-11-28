@@ -8,6 +8,86 @@ typedef struct {
     char *universum;
 }Universum;
 
+typedef struct {
+    int count;
+}Word_count;
+
+typedef struct {
+    int first;
+    int second;
+}Args;
+
+//parses words into 2d struct, use with struct that stores the number of words, having 2d array is pain in struct...
+char **parse_words(char *string,Word_count *w){
+    char *help_string = malloc(sizeof (char) * strlen(string));
+    strcpy(help_string,string);
+    char **data = NULL;
+    const char delim[4] = " \n";
+    char *token;
+    int counter = 0;
+    token = strtok(help_string, delim);
+    while( token != NULL ) {
+        token = strtok(NULL, delim);
+        if (token == NULL) break;
+        data = (char **) realloc(data, (counter + 1) * sizeof(data));
+        data[counter] = (char *)malloc(sizeof(char)*  strlen(token));
+        strcpy(data[counter], token);
+        counter++;
+
+    }
+    w->count = counter;
+    free(help_string);
+    if (data == NULL) return 0;
+    return data;
+}
+
+
+bool is_number(char * str){
+    int len = (int) strlen(str);
+    for(int i =0 ; i< len;i++){
+        if(!(str[i]>='0' && str[i] <= '9')){
+            fprintf(stderr, "wrong command");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool find_args(char *string,Args *arguments){
+    char * help_str = malloc(sizeof (char) * strlen(string));
+    if(help_str == NULL) return false;
+    strcpy(help_str,string);
+    char * token;
+    const char delim[2] = " \n";
+    int counter = 0;
+    char *ptr;
+    token = strtok(help_str, delim);
+    bool error = false;
+    while (token != NULL && error==false) {
+        if (counter == 2){
+            if(!is_number(token)) error = true;
+            arguments->first = (int)strtol(token,&ptr,10);
+        }
+        if (counter == 3){
+            if(!is_number(token)) error = true;
+            arguments->second = (int)strtol(token,&ptr,10);
+        }
+        if (counter > 3) error = true;
+        token = strtok(NULL, delim);
+        counter++;
+    }
+    free(help_str);
+    if (error)return  false;
+    return true;
+}
+
+void free_words(char **data,Word_count w){
+    for(int i = 0; i <w.count;i++){
+        free(data[i]);
+    }
+    free(data);
+}
+
 bool check_duplicates(char *substring, char *line){
     int count = 0;
     const char *tmp = line;
@@ -107,16 +187,6 @@ bool check_rel_with_uni(char *line,Universum universum){
     return true;
 }
 
-bool is_number(char * str){
-    int len = (int) strlen(str);
-    for(int i =0 ; i< len;i++){
-        if(!(str[i]>='0' && str[i] <= '9')){
-            fprintf(stderr, "wrong command");
-            return false;
-        }
-    }
-    return true;
-}
 
 int check_command_arg(char *line){
     char *help_string = malloc(sizeof (char) * strlen(line));
@@ -144,13 +214,9 @@ int check_command_arg(char *line){
     return number;
 }
 
-bool card(char *line,char **data){
-    int index = check_command_arg(line);
-    if(index == 0){
-        return false;
-    }
-    char * string = malloc(sizeof (char)* strlen(data[index]));
-            string = strcpy(string,data[index]);
+bool card(char **data,Args argumnts){
+    char * string = malloc(sizeof (char)* strlen(data[argumnts.first]));
+    string = strcpy(string,data[argumnts.first]);
     const char delim[4] = " \n";
     char *token;
     token = strtok(string, delim);
@@ -162,15 +228,13 @@ bool card(char *line,char **data){
     }
     printf("\nnumber of words is %d\n", counter);
     free(string);
+    return true;
+
 }
-bool empty(char *line, char **data){
-    int index = check_command_arg(line);
-    if(index == 0){
-        return false;
-    }
+bool empty(char **data, Args arguments){
     const char delim[4] = " \n";
-    char * string = malloc(sizeof (char)* strlen(data[index]));
-    string = strcpy(string,data[index]);
+    char * string = malloc(sizeof (char)* strlen(data[arguments.first]));
+    string = strcpy(string,data[arguments.first]);
     char *token;
     token = strtok(string, delim);
     token = strtok(NULL, delim);
@@ -179,16 +243,12 @@ bool empty(char *line, char **data){
     free(string);
     return true;
 }
-bool complement(char *line, char **data) {
-    int index = check_command_arg(line);
-    if(index == 0){
-        return false;
-    }
+bool complement(char **data, Args arguments) {
     const char delim[4] = " \n";
     char *universum = malloc(sizeof (char) * strlen(data[1]));
     strcpy(universum,data[1]);
-    char * string = malloc(sizeof (char)* strlen(data[index]));
-    string = strcpy(string,data[index]);
+    char * string = malloc(sizeof (char)* strlen(data[arguments.first]));
+    string = strcpy(string,data[arguments.first]);
     char * token;
     char *ptr;
     token = strtok(universum, delim);
@@ -205,7 +265,59 @@ bool complement(char *line, char **data) {
     free(string);
     return  true;
 }
-void union_f(char *line){ printf("works");}
+
+bool union_f(char *line,char **data, Args arguments){
+    //add fction like check_command_arg but cheks 2 not 1
+    const char delim[2] = " \n";
+    char *token;
+    //copies the line with command to string for strtok since it changes the string and need the line intact
+    char * string = malloc(sizeof (char)* strlen(line));
+    string = strcpy(string,line);
+    Word_count first_w; //to store how many words sets have
+    char *firt_set;
+    char *sec_set;
+    //**************************************************************
+    firt_set = malloc(sizeof (char) * strlen(data[arguments.first]));
+    if (firt_set == NULL){
+        fprintf(stderr,"error in allocating commands");
+        return false;
+    }
+    sec_set = malloc(sizeof (char) * strlen(data[arguments.second]));
+    if (sec_set == NULL){
+        fprintf(stderr,"error in allocating commands");
+        return false;
+    }
+    //****************************************************************
+    strcpy(firt_set,data[arguments.first]);
+    strcpy(sec_set,data[arguments.second]);
+    char **first_words= NULL;
+    first_words = parse_words(firt_set,&first_w);
+    Word_count sec_w;
+    char **second_words = NULL;
+    //parse 1st set and compare it to second
+    //if not in 2nd, print, of ye, nothing
+    //then, print whole second
+    char *h_s = malloc(sizeof (char ) * strlen(firt_set));
+    strcpy(h_s,firt_set);
+    token = strtok(h_s,delim);
+    printf("\nunion is: \n\n");
+    while (token != NULL){
+        if(strstr(sec_set, token) == NULL) printf("%s ", token);
+        token = strtok(NULL, delim);
+    }
+    second_words = parse_words(sec_set,&sec_w);
+    for (int i = 0; i < sec_w.count; i++) {
+        printf("%s ", second_words[i]);
+    }
+    free_words(first_words,first_w);
+    free_words(second_words,sec_w);
+    //need to arse this cuz S ... ffs we need parse fction; printf("%s",sec_set);
+    free(h_s);
+    free(firt_set);
+    free(sec_set);
+    free(string);
+    return true;
+}
 void intersect(char *line){ printf("works");}
 void minus(char *line){ printf("works");}
 void subseteq(char *line){ printf("works");}
@@ -228,9 +340,16 @@ void closure_trans(char *line){ printf("works");}
 void select_random(char *line){ printf("works");}
 
 bool check_commands(char *line,char **data, Universum universum){
+    //using help string because strtok changes the string it is using
+    //and need line intact for further use
     char *help_string = malloc(sizeof (char) * strlen(line));
     strcpy(help_string,line);
     const char delim[4] = " ";
+    Args arguments;
+    if (!find_args(help_string,&arguments)){
+        free(help_string);
+        return false;
+    }
     char *token;
     token = strtok(help_string, delim);
     token = strtok(NULL, delim);
@@ -239,16 +358,16 @@ bool check_commands(char *line,char **data, Universum universum){
         return false;
     }
     if (!strcmp(token,"empty")){
-        empty(line,data);
+        empty(data, arguments);
     }
     else if (!strcmp(token,"card")){
-        card(line,data);
+        card(data,arguments);
     }
     else if (!strcmp(token,"complement")){
-        complement(line,data);
+        complement(data, arguments);
     }
     else if (!strcmp(token,"union")) {
-        union_f( line);// union is already defined function in C
+        (union_f(line,data, arguments));
     }
     else if (!strcmp(token,"intersect")) {
         intersect(line);
@@ -317,6 +436,16 @@ bool check_commands(char *line,char **data, Universum universum){
     return true;
 }
 
+void print_results(char ** data, int counter){
+    //print only U,S and R
+    //then call a function that has results of operations
+    for (int i = 0; i <counter;i++){
+        //if (data[i][0] == 'C') {
+        //printf("line %s \n", data[i]);
+        //}
+    }
+}
+
 bool check_document(FILE *fp,char  **argv, Universum universum){
     char *line = NULL;
     size_t len = 0;
@@ -330,6 +459,7 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
     char **data = NULL;
     int index = 1;
     while ((getline(&line, &len, fp) != -1) && error == false){
+        //allocs memory for data and load the current line
         data = (char **) realloc(data, (index + 1) * sizeof(*data));
         data[index] = (char *)malloc(sizeof(char)*  strlen(line));
         strcpy(data[index], line);
@@ -342,6 +472,7 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
             case 'U':
                 if (!is_universum) {
                     if(!check_words(line)){ error = true;break;}
+                    //probably unnecessary, w/e
                     universum.universum = malloc(sizeof (char)* strlen(line));
                     strcpy(universum.universum,line);
                     is_universum = true;
@@ -353,13 +484,13 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 break;
             case 'S':
                 if(!check_words(line)){ error = true;break;}
-                if(!check_set_with_uni(line,universum)){
+                if(!check_set_with_uni(line,universum)){//checks if elements are in universum
                     error = true;
                     break;
                 }
                 break;
             case 'R':
-                if(!check_rel_with_uni(line,universum)){ error = true;break;}
+                if(!check_rel_with_uni(line,universum)){ error = true;break;}//checks if elements are in universum
                 break;
             case 'C':
                 if(!check_commands(line,data,universum)){
@@ -370,6 +501,9 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 fprintf(stderr,"wrong identifier");
                 return 2;
         }
+    }
+    if(!error){
+        print_results(data,counter);
     }
     free(universum.universum);
     fclose(fp);
