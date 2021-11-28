@@ -8,4 +8,5 @@ C card 2
 C empty 3
 C complement 2
 C union 2 3
+C intersect 2 3
 C codomain 1

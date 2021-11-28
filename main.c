@@ -187,33 +187,6 @@ bool check_rel_with_uni(char *line,Universum universum){
     return true;
 }
 
-
-int check_command_arg(char *line){
-    char *help_string = malloc(sizeof (char) * strlen(line));
-    strcpy(help_string,line);
-    const char delim[4] = " \n";
-    char *token;
-    token = strtok(help_string, delim);
-    int counter = 1;
-    int number;
-    char *ptr;
-    while( token != NULL ) {
-        token = strtok(NULL, delim);
-        if (token == NULL) break;
-        counter++;
-        if (counter>3){
-            fprintf(stderr,"wrong command");
-            return 0;
-        }
-        if(counter==3){
-            if(!is_number(token)) return false;
-            else number=(int) strtol(token, &ptr,10);
-        }
-    }
-    free(help_string);
-    return number;
-}
-
 bool card(char **data,Args argumnts){
     char * string = malloc(sizeof (char)* strlen(data[argumnts.first]));
     string = strcpy(string,data[argumnts.first]);
@@ -229,8 +202,8 @@ bool card(char **data,Args argumnts){
     printf("\nnumber of words is %d\n", counter);
     free(string);
     return true;
-
 }
+
 bool empty(char **data, Args arguments){
     const char delim[4] = " \n";
     char * string = malloc(sizeof (char)* strlen(data[arguments.first]));
@@ -267,7 +240,6 @@ bool complement(char **data, Args arguments) {
 }
 
 bool union_f(char *line,char **data, Args arguments){
-    //add fction like check_command_arg but cheks 2 not 1
     const char delim[2] = " \n";
     char *token;
     //copies the line with command to string for strtok since it changes the string and need the line intact
@@ -318,7 +290,50 @@ bool union_f(char *line,char **data, Args arguments){
     free(string);
     return true;
 }
-void intersect(char *line){ printf("works");}
+bool intersect(char *line, char ** data, Args arguments){const char delim[2] = " \n";
+    char *token;
+    //copies the line with command to string for strtok since it changes the string and need the line intact
+    char * string = malloc(sizeof (char)* strlen(line));
+    string = strcpy(string,line);
+    Word_count first_w; //to store how many words sets have
+    char *firt_set;
+    char *sec_set;
+    //**************************************************************
+    firt_set = malloc(sizeof (char) * strlen(data[arguments.first]));
+    if (firt_set == NULL){
+        fprintf(stderr,"error in allocating commands");
+        return false;
+    }
+    sec_set = malloc(sizeof (char) * strlen(data[arguments.second]));
+    if (sec_set == NULL){
+        fprintf(stderr,"error in allocating commands");
+        return false;
+    }
+    //****************************************************************
+    strcpy(firt_set,data[arguments.first]);
+    strcpy(sec_set,data[arguments.second]);
+    char **first_words= NULL;
+    first_words = parse_words(firt_set,&first_w);
+    Word_count sec_w;
+    //parse 1st set and compare it to second
+    //if not in 2nd, print, of ye, nothing
+    //then, print whole second
+    char *h_s = malloc(sizeof (char ) * strlen(firt_set));
+    strcpy(h_s,firt_set);
+    token = strtok(h_s,delim);
+    printf("\nintersect is: \n\n");
+    while (token != NULL){
+        if(strstr(sec_set, token) != NULL) {
+            printf("%s ", token);
+        }
+        token = strtok(NULL, delim);
+    }
+    free_words(first_words,first_w);
+    free(h_s);
+    free(firt_set);
+    free(sec_set);
+    free(string);
+    return true;}
 void minus(char *line){ printf("works");}
 void subseteq(char *line){ printf("works");}
 void subset(char *line){ printf("works");}
@@ -370,7 +385,7 @@ bool check_commands(char *line,char **data, Universum universum){
         (union_f(line,data, arguments));
     }
     else if (!strcmp(token,"intersect")) {
-        intersect(line);
+        intersect(line,data,arguments);
     }
     else if (!strcmp(token,"minus")) {
         minus(line);
