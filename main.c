@@ -22,7 +22,7 @@ char **parse_words(char *string,Word_count *w){
     char *help_string = malloc(sizeof (char) * strlen(string));
     strcpy(help_string,string);
     char **data = NULL;
-    const char delim[4] = " \n";
+    const char delim[2] = " \n";
     char *token;
     int counter = 0;
     token = strtok(help_string, delim);
@@ -39,6 +39,53 @@ char **parse_words(char *string,Word_count *w){
     free(help_string);
     if (data == NULL) return 0;
     return data;
+}
+// similar to parse_words, but has different delim and delim has to be const( will not work otherwise ) so it can't be dealt with by mergin fucntions and simple (if set)delim =  else delim=
+char **parse_relation(char *string,Word_count *w){
+    char *help_string = malloc(sizeof (char) * strlen(string));
+    strcpy(help_string,string);
+    char **data = NULL;
+    const char delim[4] = " ()\n";
+    char *token;
+    int counter = 0;
+    token = strtok(help_string, delim);
+    while( token != NULL ) {
+        token = strtok(NULL, delim);
+        if (token == NULL) break;
+        data = (char **) realloc(data, (counter + 1) * sizeof(data));
+        data[counter] = (char *)malloc(sizeof(char)*  strlen(token));
+        strcpy(data[counter], token);
+        counter++;
+
+    }
+    w->count = counter;
+    free(help_string);
+    if (data == NULL) return 0;
+    return data;
+}
+
+bool check_relation(char *string){
+    char *help_string = malloc(sizeof (char) * strlen(string));
+    strcpy(help_string,string);
+    //char **data = NULL;
+    const char delim[4] = " \n";
+    char *token;
+    int counter = 0;
+    token = strtok(help_string, delim);
+    while( token != NULL ) {
+        token = strtok(NULL, delim);
+        if (token == NULL) break;
+        if (counter%2 == 0){
+            if (token[0] != '(')return false;
+        }
+        if (counter%2 == 1){
+            if(token[strlen(token)-1] != ')')return false;
+        }
+        counter++;
+    }
+    free(help_string);
+    return true;
+
 }
 
 
@@ -149,21 +196,15 @@ bool check_words(char *line){
 }
 
 bool check_set_with_uni(char *line,Universum universum){
-    char *help_string = malloc(sizeof (char) * strlen(line));
-    strcpy(help_string,line);
-    const char delim[4] = " \n";
-    char *token;
-    token = strtok(help_string, delim);
-    while( token != NULL ) {
-        token = strtok(NULL, delim);
-        if (token == NULL) break;
-        if((strstr(universum.universum, token) == NULL)){
+    Word_count w;
+    char **set_words = parse_words(line,&w);
+    for (int i = 0; i < w.count;i++){
+        if((strstr(universum.universum, set_words[i]) == NULL)){
             fprintf(stderr,"Word is not in universum");
-            free(help_string);
             return false;
         }
     }
-    free(help_string);
+    free_words(set_words,w);
     return true;
 }
 
@@ -182,25 +223,16 @@ bool check_rel_with_uni(char *line,Universum universum){
             return false;
         }
     }
-    printf("correct\n");
+    //printf("correct\n");
     free(help_string);
     return true;
 }
 
-bool card(char **data,Args argumnts){
-    char * string = malloc(sizeof (char)* strlen(data[argumnts.first]));
-    string = strcpy(string,data[argumnts.first]);
-    const char delim[4] = " \n";
-    char *token;
-    token = strtok(string, delim);
-    int counter = 0;
-    while( token != NULL ) {
-        token = strtok(NULL, delim);
-        if (token == NULL) break;
-        counter++;
-    }
-    printf("\nnumber of words is %d\n", counter);
-    free(string);
+bool card(char **data,Args argumnets){
+    Word_count w;
+    char **words = parse_words(data[argumnets.first],&w);
+    printf("%d\n", w.count);
+    free_words(words,w);
     return true;
 }
 
@@ -209,6 +241,7 @@ bool empty(char **data, Args arguments){
     char * string = malloc(sizeof (char)* strlen(data[arguments.first]));
     string = strcpy(string,data[arguments.first]);
     char *token;
+    // if token is NULL, that means there are only whitespaces or nothing
     token = strtok(string, delim);
     token = strtok(NULL, delim);
     if (token == NULL)printf("false\n");
@@ -217,134 +250,123 @@ bool empty(char **data, Args arguments){
     return true;
 }
 bool complement(char **data, Args arguments) {
-    const char delim[4] = " \n";
-    char *universum = malloc(sizeof (char) * strlen(data[1]));
-    strcpy(universum,data[1]);
-    char * string = malloc(sizeof (char)* strlen(data[arguments.first]));
-    string = strcpy(string,data[arguments.first]);
-    char * token;
-    char *ptr;
-    token = strtok(universum, delim);
-    while( token != NULL ) {
-        token = strtok(NULL, delim);
-        if (token == NULL) break;
-        ptr = strstr(string, token);
-        if (ptr == NULL){
-            printf("word is %s \n", token);
-        }
-
+    //prints words that are not in universum
+    Word_count w;
+    char **universum = parse_words(data[1], &w);
+    for(int i = 1; i <w.count;i++){
+        if(strstr(data[arguments.first],universum[i])== NULL)printf("%s ", universum[i]);
     }
-    free(universum);
-    free(string);
+    printf("\n");
+    free_words(universum,w);
     return  true;
 }
 
-bool union_f(char *line,char **data, Args arguments){
-    const char delim[2] = " \n";
-    char *token;
-    //copies the line with command to string for strtok since it changes the string and need the line intact
-    char * string = malloc(sizeof (char)* strlen(line));
-    string = strcpy(string,line);
+bool union_f(char **data, Args arguments){
     Word_count first_w; //to store how many words sets have
-    char *firt_set;
-    char *sec_set;
-    //**************************************************************
-    firt_set = malloc(sizeof (char) * strlen(data[arguments.first]));
-    if (firt_set == NULL){
-        fprintf(stderr,"error in allocating commands");
-        return false;
-    }
-    sec_set = malloc(sizeof (char) * strlen(data[arguments.second]));
-    if (sec_set == NULL){
-        fprintf(stderr,"error in allocating commands");
-        return false;
-    }
-    //****************************************************************
-    strcpy(firt_set,data[arguments.first]);
-    strcpy(sec_set,data[arguments.second]);
     char **first_words= NULL;
-    first_words = parse_words(firt_set,&first_w);
+    first_words = parse_words(data[arguments.first],&first_w);
     Word_count sec_w;
     char **second_words = NULL;
-    //parse 1st set and compare it to second
-    //if not in 2nd, print, of ye, nothing
-    //then, print whole second
-    char *h_s = malloc(sizeof (char ) * strlen(firt_set));
-    strcpy(h_s,firt_set);
-    token = strtok(h_s,delim);
-    printf("\nunion is: \n\n");
-    while (token != NULL){
-        if(strstr(sec_set, token) == NULL) printf("%s ", token);
-        token = strtok(NULL, delim);
+    for (int i = 0;i <first_w.count;i++){
+        if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
     }
-    second_words = parse_words(sec_set,&sec_w);
+    second_words = parse_words(data[arguments.second],&sec_w);
     for (int i = 0; i < sec_w.count; i++) {
         printf("%s ", second_words[i]);
     }
+    printf("\n");
     free_words(first_words,first_w);
     free_words(second_words,sec_w);
-    //need to arse this cuz S ... ffs we need parse fction; printf("%s",sec_set);
-    free(h_s);
-    free(firt_set);
-    free(sec_set);
-    free(string);
     return true;
 }
-bool intersect(char *line, char ** data, Args arguments){const char delim[2] = " \n";
-    char *token;
-    //copies the line with command to string for strtok since it changes the string and need the line intact
-    char * string = malloc(sizeof (char)* strlen(line));
-    string = strcpy(string,line);
+bool intersect(char ** data, Args arguments){
     Word_count first_w; //to store how many words sets have
-    char *firt_set;
-    char *sec_set;
-    //**************************************************************
-    firt_set = malloc(sizeof (char) * strlen(data[arguments.first]));
-    if (firt_set == NULL){
-        fprintf(stderr,"error in allocating commands");
-        return false;
-    }
-    sec_set = malloc(sizeof (char) * strlen(data[arguments.second]));
-    if (sec_set == NULL){
-        fprintf(stderr,"error in allocating commands");
-        return false;
-    }
-    //****************************************************************
-    strcpy(firt_set,data[arguments.first]);
-    strcpy(sec_set,data[arguments.second]);
     char **first_words= NULL;
-    first_words = parse_words(firt_set,&first_w);
-    Word_count sec_w;
-    //parse 1st set and compare it to second
-    //if not in 2nd, print, of ye, nothing
-    //then, print whole second
-    char *h_s = malloc(sizeof (char ) * strlen(firt_set));
-    strcpy(h_s,firt_set);
-    token = strtok(h_s,delim);
-    printf("\nintersect is: \n\n");
-    while (token != NULL){
-        if(strstr(sec_set, token) != NULL) {
-            printf("%s ", token);
-        }
-        token = strtok(NULL, delim);
+    first_words = parse_words(data[arguments.first],&first_w);
+    for (int i = 0;i < first_w.count;i++){
+        if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
+    }
+    printf("\n");
+    free_words(first_words,first_w);
+    return true;
+}
+bool minus(char **data, Args arguments){
+    Word_count first_w; //to store how many words sets have
+    char **first_words= NULL;
+    first_words = parse_words(data[arguments.first],&first_w);
+    for (int i = 0; i < first_w.count;i++){
+        if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
+    }
+    printf("\n");
+    free_words(first_words,first_w);
+    return true;
+}
+bool subseteq(char **data, Args arguments){
+    Word_count first_w; //to store how many words sets have
+    char **first_words= NULL;
+    first_words = parse_words(data[arguments.first],&first_w);
+    int counter = 0;
+    for(int i = 0;i < first_w.count;i++){
+        if(strstr(data[arguments.second], first_words[i]) != NULL)counter++;
     }
     free_words(first_words,first_w);
-    free(h_s);
-    free(firt_set);
-    free(sec_set);
-    free(string);
-    return true;}
-void minus(char *line){ printf("works");}
-void subseteq(char *line){ printf("works");}
-void subset(char *line){ printf("works");}
-void equals(char *line){ printf("works");}
+    if(counter == first_w.count)printf("True\n");
+    else printf("False\n");
+    return true;
+}
+bool subset(char **data, Args arguments){
+    Word_count first_w; //to store how many words sets have
+    char **first_words= NULL;
+    int counter = 0;
+    first_words = parse_words(data[arguments.first],&first_w);
+    for (int i = 0; i < first_w.count;i++){
+        if (strstr(data[arguments.second], first_words[i]) != NULL)counter++;
+    }
+    char **sec_words= NULL;
+    Word_count  sec_w;
+    sec_words = parse_words(data[arguments.second],&sec_w);
+    free_words(first_words,first_w);
+    free_words(sec_words,sec_w);
+    if(counter < sec_w.count)printf("True\n");
+    else printf("False\n");
+    return true;
+}
+bool equals(char **data, Args arguments){
+    Word_count first_w; //to store how many words sets have
+    char **first_words= NULL;
+    first_words = parse_words(data[arguments.first],&first_w);
+    int counter = 0;
+    for(int i = 0; i < first_w.count;i++){
+        if(strstr(data[arguments.second], first_words[i]) != NULL) {
+            counter++;
+        }
+    }
+    char **sec_words= NULL;
+    Word_count  sec_w;
+    sec_words = parse_words(data[arguments.second],&sec_w);
+    free_words(first_words,first_w);
+    free_words(sec_words,sec_w);
+    printf("equals:\n");
+    if(counter == sec_w.count)printf("True\n");
+    else printf("False\n");
+    return true;
+}
+// OPERATIONS ON RELATIONS
 void reflexive(char *line){ printf("works");}
 void symmetric(char *line){ printf("works");}
 void antisymmetric(char *line){ printf("works");}
 void transitive(char *line){ printf("works");}
 void function(char *line){ printf("works");}
 void domain(char *line){ printf("works");}
-void codomain(char *line){ printf("works");}
+void codomain(char **data, Args arguments){
+    //this is how you parse words you receive from data
+    // use this in all other operation functions
+    Word_count count;
+    char **words= NULL;
+    words = parse_relation(data[arguments.first], &count);
+    // words are parsed in 2d array, you can access them 4expl words[0] is 1st word etc...
+    free_words(words, count);
+}
 void injective(char *line){ printf("works");}
 void surjetive(char *line){ printf("works");}
 void bijective(char *line){ printf("works");}
@@ -382,22 +404,22 @@ bool check_commands(char *line,char **data, Universum universum){
         complement(data, arguments);
     }
     else if (!strcmp(token,"union")) {
-        (union_f(line,data, arguments));
+        (union_f(data, arguments));
     }
     else if (!strcmp(token,"intersect")) {
-        intersect(line,data,arguments);
+        intersect(data,arguments);
     }
     else if (!strcmp(token,"minus")) {
-        minus(line);
+        minus(data,arguments);
     }
     else if (!strcmp(token,"subseteq")) {
-        subseteq(line);
+        subseteq(data, arguments);
     }
     else if (!strcmp(token,"subset")) {
-        subset(line);
+        subset(data , arguments);
     }
     else if (!strcmp(token,"equals")) {
-        equals(line);
+        equals(data, arguments);
     }
     else if (!strcmp(token,"reflexive")) {
         reflexive(line);
@@ -418,7 +440,7 @@ bool check_commands(char *line,char **data, Universum universum){
         domain(line);
     }
     else if (!strcmp(token,"codomain")) {
-        codomain(line);
+        codomain(data, arguments);
     }
     else if (!strcmp(token,"injective")) {
         injective(line);
@@ -506,6 +528,7 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 break;
             case 'R':
                 if(!check_rel_with_uni(line,universum)){ error = true;break;}//checks if elements are in universum
+                if (!check_relation(line)){error = true; break;}
                 break;
             case 'C':
                 if(!check_commands(line,data,universum)){
@@ -532,7 +555,7 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
 }
 
 int main(int argc, char **argv) {
-    printf("%d aby werror nejebal ze argc not used\n\n",argc);
+    //printf("%d aby werror nejebal ze argc not used\n\n",argc);
     if (argv[1] == NULL){
         fprintf(stderr,"wrong argument");
         return 2;
