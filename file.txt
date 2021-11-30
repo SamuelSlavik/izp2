@@ -1,16 +1,18 @@
-U Apple Lemon Orange Banana Peach Coconut
+U Apple Lemon Orange Banana Peach Coconut hocico
 S Apple Lemon Banana Peach
 S Apple Peach Coconut
 S Peach Lemon Apple Banana
 S Apple Lemon Peach Coconut
 S Peach Lemon Apple Banana
-R (Lemon Apple) (Banana Apple)
+R (Lemon Apple) (Lemon Apple) (Banana Apple) (Peach Orange) (Apple Orange) (Apple Coconut) (Apple Peach) (Apple Banana) (Coconut Banana) 
 C card 2
 C empty 3
 C complement 2
 C union 2 3
 C intersect 2 3
+C domain 7
 C codomain 7
+C function 7
 C minus 2 3
 C subseteq 5 2
 C subset 4 6
