@@ -19,7 +19,7 @@ typedef struct {
 
 //parses words into 2d struct, use with struct that stores the number of words, having 2d array is pain in struct...
 char **parse_words(char *string,Word_count *w){
-    char *help_string = malloc(sizeof (char) * strlen(string));
+    char *help_string = malloc(strlen(string)+1);
     strcpy(help_string,string);
     char **data = NULL;
     const char delim[2] = " \n";
@@ -30,10 +30,9 @@ char **parse_words(char *string,Word_count *w){
         token = strtok(NULL, delim);
         if (token == NULL) break;
         data = (char **) realloc(data, (counter + 1) * sizeof(data));
-        data[counter] = (char *)malloc(sizeof(char)*  strlen(token));
+        data[counter] = (char *)malloc(sizeof(char)*  strlen(token)+1);
         strcpy(data[counter], token);
         counter++;
-
     }
     w->count = counter;
     free(help_string);
@@ -42,7 +41,7 @@ char **parse_words(char *string,Word_count *w){
 }
 // similar to parse_words, but has different delim and delim has to be const( will not work otherwise ) so it can't be dealt with by mergin fucntions and simple (if set)delim =  else delim=
 char **parse_relation(char *string,Word_count *w){
-    char *help_string = malloc(sizeof (char) * strlen(string));
+    char *help_string = malloc(sizeof (char) * strlen(string)+1);
     strcpy(help_string,string);
     char **data = NULL;
     const char delim[4] = " ()\n";
@@ -53,7 +52,7 @@ char **parse_relation(char *string,Word_count *w){
         token = strtok(NULL, delim);
         if (token == NULL) break;
         data = (char **) realloc(data, (counter + 1) * sizeof(data));
-        data[counter] = (char *)malloc(sizeof(char)*  strlen(token));
+        data[counter] = (char *)malloc(sizeof(char)*  strlen(token)+1);
         strcpy(data[counter], token);
         counter++;
 
@@ -65,7 +64,7 @@ char **parse_relation(char *string,Word_count *w){
 }
 
 bool check_relation(char *string){
-    char *help_string = malloc(sizeof (char) * strlen(string));
+    char *help_string = malloc(sizeof (char) * strlen(string)+1);
     strcpy(help_string,string);
     //char **data = NULL;
     const char delim[4] = " \n";
@@ -101,7 +100,7 @@ bool is_number(char * str){
 }
 
 bool find_args(char *string,Args *arguments){
-    char * help_str = malloc(sizeof (char) * strlen(string));
+    char * help_str = malloc(sizeof (char) * strlen(string)+1);
     if(help_str == NULL) return false;
     strcpy(help_str,string);
     char * token;
@@ -167,7 +166,7 @@ bool check_words(char *line){
     }
     int counter = 0;
     unsigned long len = strlen(line);
-    char *help_string = malloc(sizeof (char) * len);
+    char *help_string = malloc(sizeof (char) * len+1);
     strcpy(help_string,line);
     const char delim[4] = " \n()";
     char *token;
@@ -209,7 +208,7 @@ bool check_set_with_uni(char *line,Universum universum){
 }
 
 bool check_rel_with_uni(char *line,Universum universum){
-    char *help_string = malloc(sizeof (char) * strlen(line));
+    char *help_string = malloc(sizeof (char) * strlen(line)+1);
     strcpy(help_string,line);
     const char delim[4] = " \n()";
     char *token;
@@ -238,7 +237,7 @@ bool card(char **data,Args argumnets){
 
 bool empty(char **data, Args arguments){
     const char delim[4] = " \n";
-    char * string = malloc(sizeof (char)* strlen(data[arguments.first]));
+    char * string = malloc(sizeof (char)* strlen(data[arguments.first])+1);
     string = strcpy(string,data[arguments.first]);
     char *token;
     // if token is NULL, that means there are only whitespaces or nothing
@@ -352,19 +351,432 @@ bool equals(char **data, Args arguments){
     return true;
 }
 // OPERATIONS ON RELATIONS
-void reflexive(char *line){ printf("works");}
-void symmetric(char *line){ printf("works");}
-void antisymmetric(char *line){ printf("works");}
-void transitive(char *line){ printf("works");}
-void function(char *line){ printf("works");}
-void domain(char *line){ printf("works");}
-void codomain(char **data, Args arguments){
-    //this is how you parse words you receive from data
-    // use this in all other operation functions
+bool findInArray(char **words, int size, char **array, int counter){
+
+    for (int index =0; index < size; index++)
+    {
+        if(strstr(array[index], words[counter]))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+void reflexive(char **data, Args arguments){
     Word_count count;
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
-    // words are parsed in 2d array, you can access them 4expl words[0] is 1st word etc...
+
+    printf("reflexive: ");
+
+    int counter = 0;
+    int size = 0;
+    int unique = 0;
+    int equal = 0;
+    char **array = NULL;
+    char **array2 = NULL;
+    char **array3 = NULL;
+    int index = 0;
+    int index2 = 0;
+
+    while (words[counter] != NULL) {
+        array = (char **) realloc(array, ( index + 1) * sizeof(*array));
+        array2 = (char **) realloc(array2, ( index + 1) * sizeof(*array2));
+        array3 = (char **) realloc(array3, ( index + 1) * sizeof(*array3));
+
+        if(findInArray(words, size, array3, counter) == true){
+
+            array3[index2] = (char *)malloc(sizeof(char)*  strlen(words[counter])+1);
+            strcpy(array3[index2], words[counter]);
+            size++;
+            index2++;
+            unique++;
+        }
+
+        if (counter%2 == 0) {
+            array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter])+1);
+            strcpy(array[index], words[counter]);
+
+            array2[index] = (char *)malloc(sizeof(char)*  strlen(words[counter + 1])+1);
+            strcpy(array2[index], words[counter + 1]);
+
+            if (strstr(array[index], array2[index])) {
+                equal++;
+            }
+
+            index++;
+        }
+
+        counter++;
+    }
+    if (unique == equal) {
+        printf("true");
+    } else {
+        printf("false");
+    }
+
+    printf("\n");
+
+    int i = 0;
+    while(i != size){
+        free(array[i]);
+        free(array2[i]);
+        free(array3[i]);
+        i++;
+    }
+    free(array);
+    free(array2);
+    free(array3);
+    free_words(words, count);
+}
+void symmetric(char **data, Args arguments){
+    Word_count count;
+    char **words= NULL;
+    words = parse_relation(data[arguments.first], &count);
+
+    printf("symmetric: ");
+
+    int size = 0;
+    char **array = NULL;
+    int array_size = 0;
+    char **array2 = NULL;
+    char **array3 = NULL;
+    char **array4 = NULL;
+    int index = 0;
+    int index2 = 0;
+    int symmetric_relations = 0;
+    int relations_counter = 0;
+
+    for (int i = 0; i < count.count; i++) {
+        array = (char **) realloc(array, (index + 1) * sizeof(*array));
+        array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));
+
+        if (i % 2 == 0) {
+            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+            strcpy(array[index], words[i]);
+            array_size++;
+
+            array2[index] = (char *) malloc(sizeof(char) * strlen(words[i + 1])+1);
+            strcpy(array2[index], words[i + 1]);
+
+            relations_counter++;
+            index++;
+        }
+    }
+
+    for (int i = 0; i < count.count; i++) {
+        array3 = (char **) realloc(array3, (index2 + 1) * sizeof(*array3));
+        array4 = (char **) realloc(array4, (index2 + 1) * sizeof(*array4));
+
+        if (i % 2 == 0) {
+            array3[index2] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+            strcpy(array3[index2], words[i + 1]);
+
+            array4[index2] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+            strcpy(array4[index2], words[i]);
+
+            for (int j = 0; j < array_size; j++) {
+                if ((strstr(array[j], array3[index2])) && (strstr(array2[j], array4[index2]))) {
+                    symmetric_relations++;
+                }
+            }
+            index2++;
+        }
+    }
+
+
+    if (symmetric_relations == relations_counter) {
+        printf("true");
+    } else {
+        printf("false");
+    }
+
+    printf("\n");
+
+    int i = 0;
+    while(i != size){
+        free(array[i]);
+        free(array2[i]);
+        free(array3[i]);
+        free(array4[i]);
+        i++;
+    }
+    free(array);
+    free(array2);
+    free(array3);
+    free(array4);
+    free_words(words, count);
+}
+void antisymmetric(char **data, Args arguments){
+    Word_count count;
+    char **words= NULL;
+    words = parse_relation(data[arguments.first], &count);
+
+    printf("antisymmetric: ");
+
+    int size = 0;
+    char **array = NULL;
+    int array_size = 0;
+    char **array2 = NULL;
+    char **array3 = NULL;
+    char **array4 = NULL;
+    int index = 0;
+    int index2 = 0;
+    int antisymmetric_dispute = 0;
+    int relations_counter = 0;
+
+    for (int i = 0; i < count.count; i++) {
+        array = (char **) realloc(array, (index + 1) * sizeof(*array));
+        array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));
+
+        if (i % 2 == 0) {
+            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+            strcpy(array[index], words[i]);
+            array_size++;
+
+            array2[index] = (char *) malloc(sizeof(char) * strlen(words[i + 1])+1);
+            strcpy(array2[index], words[i + 1]);
+
+            relations_counter++;
+            index++;
+        }
+    }
+
+    for (int i = 0; i < count.count; i++) {
+        array3 = (char **) realloc(array3, (index2 + 1) * sizeof(*array3));
+        array4 = (char **) realloc(array4, (index2 + 1) * sizeof(*array4));
+
+        if (i % 2 == 0) {
+            array3[index2] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+            strcpy(array3[index2], words[i + 1]);
+
+            array4[index2] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+            strcpy(array4[index2], words[i]);
+
+            for (int j = 0; j < array_size; j++) {
+                if ((strstr(array[j], array3[index2])) && (strstr(array2[j], array4[index2])) && !(strstr(array3[index2], array4[index2]))) {
+                    antisymmetric_dispute = 1;
+                    printf("false\n");
+                    return;
+                }
+            }
+            index2++;
+        }
+    }
+    printf("true\n");
+    int i = 0;
+    while(i != size){
+        free(array[i]);
+        free(array2[i]);
+        free(array3[i]);
+        free(array4[i]);
+        i++;
+    }
+    free(array);
+    free(array2);
+    free(array3);
+    free(array4);
+    free_words(words, count);
+}
+void transitive(char **data, Args arguments){
+    Word_count count;
+    char **words= NULL;
+    words = parse_relation(data[arguments.first], &count);
+
+    printf("transitive: ");
+
+    int size = 0;
+    char **array = NULL;
+    int array_size = 0;
+    char **array2 = NULL;
+    char **array3 = NULL;
+    char **array4 = NULL;
+    int index = 0;
+    int index2 = 0;
+    int relations_counter = 0;
+    int is_transitive = 0;
+
+    for (int i = 0; i < count.count; i++) {
+        array = (char **) realloc(array, (index + 1) * sizeof(*array));
+        array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));
+
+        if (i % 2 == 0) {
+            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+            strcpy(array[index], words[i]);
+            array_size++;
+
+            array2[index] = (char *) malloc(sizeof(char) * strlen(words[i + 1])+1);
+            strcpy(array2[index], words[i + 1]);
+
+            relations_counter++;
+            index++;
+        }
+    }
+
+    for (int i = 0; i < array_size; i++) {
+        for (int j = 0; j < array_size; j++) {
+            if (!strcmp(array2[i], array[j])) {
+                is_transitive = 0;
+                for (int k = 0; k < array_size; k++) {
+                    int x = strcmp(array[i], array[k]);
+                    int y = strcmp(array2[j], array2[k]);
+
+                    if ((!x) && (!y)) {
+                        is_transitive = 1;
+                    }
+                    if ((k == array_size-1) && (is_transitive == 0)) {
+                        printf("false\n");
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    printf("true\n");
+
+    int i = 0;
+    while(i != size){
+        free(array[i]);
+        free(array2[i]);
+        i++;
+    }
+    free(array);
+    free(array2);
+    free_words(words, count);
+}
+
+
+void function(char **data, Args arguments){
+    Word_count count;
+    char **words= NULL;
+    words = parse_relation(data[arguments.first], &count);
+
+    int counter = 0;
+    printf("\n");
+    int size = 0;
+    char **array = NULL;
+    int index = 0;
+    int help = 0;
+    printf("function :  ");
+    while (words[counter] != NULL)
+    {
+        array = (char **) realloc(array, ( index + 1) * sizeof(*array));
+        //array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
+
+        if (counter%2 == 0)
+        {
+
+
+            while(findInArray(words, size, array, counter) != false){
+
+                help++;
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter])+1);
+                strcpy(array[index], words[counter]);
+                size++;
+                index++;
+            }
+        }
+        counter++;
+    }
+
+    int help2 = counter/2;
+    if(help2 != help){printf("false");}
+    else{printf("true");}
+
+    int i = 0;
+    while(i != size){
+        free(array[i]);
+        i++;
+    }
+    //printf("%d", help);
+    //printf("%d", help2);
+    printf("\n");
+    free(array);
+    free_words(words, count);
+
+}
+
+
+void domain(char **data, Args arguments){
+    Word_count count;
+    char **words= NULL;
+    words = parse_relation(data[arguments.first], &count);
+
+    int counter = 0;
+    printf("\n");
+    int size = 0;
+    char **array = NULL;
+    int index = 0;
+
+    printf("R ");
+    while (words[counter] != NULL)
+    {
+        array = (char **) realloc(array, ( index + 1) * sizeof(*array));
+        //array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
+
+        if (counter%2 == 0)
+        {
+            if(findInArray(words, size, array, counter) == true){
+
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter])+1);
+                strcpy(array[index], words[counter]);
+                size++;
+                printf("%s ", array[index]);
+                index++;
+            }
+        }
+        counter++;
+    }
+    printf("\n");
+
+
+    int i = 0;
+    while(i != size){
+        free(array[i]);
+        i++;
+    }
+    free(array);
+    free_words(words, count);
+}
+
+
+
+void codomain(char **data, Args arguments){
+    Word_count count;
+    char **words= NULL;
+    words = parse_relation(data[arguments.first], &count);
+    int counter = 0;
+    printf("\n");
+    int size = 0;
+    char **array = NULL;
+    int index = 0;
+
+    printf("R ");
+    while (words[counter] != NULL)
+    {
+        array = (char **) realloc(array, ( index +1) * sizeof(*array));
+        //array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
+
+        if (counter%2 != 0)
+        {
+            if(findInArray(words, size, array, counter) == true){
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter])+1);
+                strcpy(array[index], words[counter]);
+                size++;
+                printf("%s ", array[index]);
+                index++;
+            }
+        }
+        counter++;
+    }
+    printf("\n");
+    int i = 0;
+    while(i != size){
+        free(array[i]);
+        i++;
+    }
+    free(array);
     free_words(words, count);
 }
 void injective(char *line){ printf("works");}
@@ -379,7 +791,7 @@ void select_random(char *line){ printf("works");}
 bool check_commands(char *line,char **data, Universum universum){
     //using help string because strtok changes the string it is using
     //and need line intact for further use
-    char *help_string = malloc(sizeof (char) * strlen(line));
+    char *help_string = malloc(sizeof (char) * strlen(line)+1);
     strcpy(help_string,line);
     const char delim[4] = " ";
     Args arguments;
@@ -422,22 +834,22 @@ bool check_commands(char *line,char **data, Universum universum){
         equals(data, arguments);
     }
     else if (!strcmp(token,"reflexive")) {
-        reflexive(line);
+        reflexive(data,arguments);
     }
     else if (!strcmp(token,"symmetric")) {
-        symmetric(line);
+        symmetric(data, arguments);
     }
     else if (!strcmp(token,"antisymmetric")) {
-        antisymmetric(line);
+        antisymmetric(data,arguments);
     }
     else if (!strcmp(token,"transitive")) {
-        transitive(line);
+        transitive(data, arguments);
     }
     else if (!strcmp(token,"function")) {
-        function(line);
+        function(data, arguments);
     }
     else if (!strcmp(token,"domain")) {
-        domain(line);
+        domain(data, arguments);
     }
     else if (!strcmp(token,"codomain")) {
         codomain(data, arguments);
@@ -498,7 +910,7 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
     while ((getline(&line, &len, fp) != -1) && error == false){
         //allocs memory for data and load the current line
         data = (char **) realloc(data, (index + 1) * sizeof(*data));
-        data[index] = (char *)malloc(sizeof(char)*  strlen(line));
+        data[index] = (char *)malloc(sizeof(char)*  strlen(line)+1);
         strcpy(data[index], line);
         index++;
         counter++;
@@ -510,7 +922,7 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 if (!is_universum) {
                     if(!check_words(line)){ error = true;break;}
                     //probably unnecessary, w/e
-                    universum.universum = malloc(sizeof (char)* strlen(line));
+                    universum.universum = malloc(sizeof (char)* strlen(line)+1);
                     strcpy(universum.universum,line);
                     is_universum = true;
                 }

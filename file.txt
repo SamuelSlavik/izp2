@@ -5,6 +5,10 @@ S Peach Lemon Apple Banana
 S Apple Lemon Peach Coconut
 S Peach Lemon Apple Banana
 R (Lemon Apple) (Banana Apple)
+R (Lemon Lemon) (Apple Peach)
+R (Lemon Apple) (Banana Peach)
+C reflexive 8
+C function 9
 C card 2
 C empty 3
 C complement 2
