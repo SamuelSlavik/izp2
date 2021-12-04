@@ -141,9 +141,19 @@ bool duplicit(char *string){
     char *token;
     int counter = 0;
     token = strtok(help_string, delim);
+    if (strlen(token) != 1){
+        fprintf(stderr,"wrong identifier");
+        free(help_string);
+        return false;
+    }
     while( token != NULL ) {
         token = strtok(NULL, delim);
         if (token == NULL) break;
+        if(strlen(token) > 30){
+            free(help_string);
+            fprintf(stderr,"element is too long");
+            return false;
+        }
         data = (char **) realloc(data, (counter + 1) * sizeof(data));
         data[counter] = (char *)malloc(sizeof(char)*  strlen(token)+1);
         strcpy(data[counter], token);
@@ -153,7 +163,7 @@ bool duplicit(char *string){
     if (data == NULL){
         free(help_string);
         free_words(data,w);
-        return false;
+        return true;
     }
     for(int i = 0; i <counter;i++){
         for(int j = i+1;j<counter;j++){
@@ -164,22 +174,6 @@ bool duplicit(char *string){
     }
     free(help_string);
     free_words(data,w);
-    return true;
-}
-
-bool check_duplicates(char *substring, char *line){
-    int count = 0;
-    const char *tmp = line;
-    tmp = strstr(tmp, substring);
-    while(tmp)
-    {
-        count++;
-        tmp++;
-        tmp = strstr(tmp, substring);
-    }
-    if(count != 1){
-        return false;
-    }
     return true;
 }
 
@@ -197,44 +191,7 @@ bool check_words(char *line){
         fprintf(stderr,"Wrong format");
         return false;
     }
-    //if(!duplicit(line))return false;
-    int counter = 0;
-    unsigned long len = strlen(line);
-    char *help_string = malloc(sizeof (char) * len+1);
-    strcpy(help_string,line);
-    const char delim[4] = " \n()";
-    char *token;
-    token = strtok(help_string, delim);
-    if (strlen(token) != 1){
-        fprintf(stderr,"wrong identifier");
-        free(help_string);
-        return false;
-    }
-    while( token != NULL ) {
-        counter++;
-        if(strlen(token) >30){
-            free(help_string);
-            fprintf(stderr,"element is too long");
-            return false;
-        }
-        token = strtok(NULL, delim);
-    }
-    char *array[counter];
-    strcpy(help_string,line);
-    int i = 0;
-    array[i] = (token = strtok(help_string, delim));
-    while( token != NULL ) {
-        i++;
-        token = strtok(NULL, delim);
-        array[i] = token;
-    }
-    for(int j = 1; j < counter-1;j++) {
-        if( !check_duplicates(array[j],line)){
-            fprintf(stderr,"duplicit words");
-            return false;
-        }
-    }
-    free(help_string);
+    if(!duplicit(line))return false;
     return true;
 }
 
