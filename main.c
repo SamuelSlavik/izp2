@@ -178,10 +178,15 @@ bool duplicit(char *string){
 }
 
 bool check_line(char *line){
-    for (size_t i = 0; i < sizeof (line); i++) {
-        if(line[i] >= '0' && line[i]<='9'){
-            return false;
-        }
+    size_t len = strlen(line);
+    for (size_t i = 0; i < len; i++) {
+        //10 je \n 32 space
+        if(line[i] > 'z') return false;
+        else if(line[i] < 10)return false;
+        else if(line[i] > 'Z' && line[i] < 'a')return false;
+        else if( line[i] > 32 && line[i] < 'A')return false;
+        else if(line[i] > 10 && line[i] < 32)return false;
+        else if(line[i] >= '0' && line[i]<='9')return false;
     }
     if (strstr(line, "true")|| strstr(line, "false")) return false;
     return true;
@@ -1127,6 +1132,10 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 }
                 break;
             case 'S':
+                if(is_operation){
+                    fprintf(stderr,"wrong order");
+                    error = true;
+                    break;}
                 if(!is_universum){error = true;break;}
                 if(!check_words(line)){ error = true;break;}
                 if(!check_set_with_uni(line,universum)){//checks if elements are in universum
@@ -1136,6 +1145,10 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 is_RS = true;
                 break;
             case 'R':
+                if(is_operation){
+                    fprintf(stderr,"wrong order");
+                    error = true;
+                    break;}
                 if(!is_universum){error = true;break;}
                 if(!check_rel_with_uni(line,universum)){ error = true;break;}//checks if elements are in universum
                 if (!check_relation(line)){error = true; break;}
