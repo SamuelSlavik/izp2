@@ -132,6 +132,41 @@ void free_words(char **data,Word_count w){
     free(data);
 }
 
+bool duplicit(char *string){
+    Word_count w;
+    char *help_string = malloc(strlen(string)+1);
+    strcpy(help_string,string);
+    char **data = NULL;
+    const char delim[2] = " \n";
+    char *token;
+    int counter = 0;
+    token = strtok(help_string, delim);
+    while( token != NULL ) {
+        token = strtok(NULL, delim);
+        if (token == NULL) break;
+        data = (char **) realloc(data, (counter + 1) * sizeof(data));
+        data[counter] = (char *)malloc(sizeof(char)*  strlen(token)+1);
+        strcpy(data[counter], token);
+        counter++;
+    }
+    w.count = counter;
+    if (data == NULL){
+        free(help_string);
+        free_words(data,w);
+        return false;
+    }
+    for(int i = 0; i <counter;i++){
+        for(int j = i+1;j<counter;j++){
+            if(!strcmp(data[i],data[j])){
+                return false;
+            }
+        }
+    }
+    free(help_string);
+    free_words(data,w);
+    return true;
+}
+
 bool check_duplicates(char *substring, char *line){
     int count = 0;
     const char *tmp = line;
@@ -162,6 +197,7 @@ bool check_words(char *line){
         fprintf(stderr,"Wrong format");
         return false;
     }
+    //if(!duplicit(line))return false;
     int counter = 0;
     unsigned long len = strlen(line);
     char *help_string = malloc(sizeof (char) * len+1);
@@ -169,8 +205,18 @@ bool check_words(char *line){
     const char delim[4] = " \n()";
     char *token;
     token = strtok(help_string, delim);
+    if (strlen(token) != 1){
+        fprintf(stderr,"wrong identifier");
+        free(help_string);
+        return false;
+    }
     while( token != NULL ) {
         counter++;
+        if(strlen(token) >30){
+            free(help_string);
+            fprintf(stderr,"element is too long");
+            return false;
+        }
         token = strtok(NULL, delim);
     }
     char *array[counter];
@@ -183,7 +229,7 @@ bool check_words(char *line){
         array[i] = token;
     }
     for(int j = 1; j < counter-1;j++) {
-        if( !check_duplicates(array[j], line)){
+        if( !check_duplicates(array[j],line)){
             fprintf(stderr,"duplicit words");
             return false;
         }
@@ -241,8 +287,8 @@ bool empty(char **data, Args arguments){
     // if token is NULL, that means there are only whitespaces or nothing
     token = strtok(string, delim);
     token = strtok(NULL, delim);
-    if (token == NULL)printf("false\n");
-    else printf("true\n");
+    if (token == NULL)printf("true");
+    else printf("false");
     free(string);
     return true;
 }
@@ -250,10 +296,10 @@ bool complement(char **data, Args arguments) {
     //prints words that are not in universum
     Word_count w;
     char **universum = parse_words(data[1], &w);
-    for(int i = 1; i <w.count;i++){
+    printf("S ");
+    for(int i = 0; i <w.count;i++){
         if(strstr(data[arguments.first],universum[i])== NULL)printf("%s ", universum[i]);
     }
-    printf("\n");
     free_words(universum,w);
     return  true;
 }
@@ -264,6 +310,7 @@ bool union_f(char **data, Args arguments){
     first_words = parse_words(data[arguments.first],&first_w);
     Word_count sec_w;
     char **second_words = NULL;
+    printf("S ");
     for (int i = 0;i <first_w.count;i++){
         if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
     }
@@ -280,8 +327,9 @@ bool intersect(char ** data, Args arguments){
     Word_count first_w; //to store how many words sets have
     char **first_words= NULL;
     first_words = parse_words(data[arguments.first],&first_w);
+    printf("S ");
     for (int i = 0;i < first_w.count;i++){
-        if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
+        if(strstr(data[arguments.second], first_words[i]) != NULL) printf("%s ", first_words[i]);
     }
     free_words(first_words,first_w);
     return true;
@@ -290,24 +338,31 @@ bool minus(char **data, Args arguments){
     Word_count first_w; //to store how many words sets have
     char **first_words= NULL;
     first_words = parse_words(data[arguments.first],&first_w);
+    printf("S ");
     for (int i = 0; i < first_w.count;i++){
-        if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
+        if(i == first_w.count-1){
+            if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s", first_words[i]);
+        }
+        else if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
     }
-    printf("\n");
     free_words(first_words,first_w);
     return true;
 }
 bool subseteq(char **data, Args arguments){
     Word_count first_w; //to store how many words sets have
     char **first_words= NULL;
+    if (!strcmp(data[arguments.first],data[arguments.second])){
+        printf("true");
+        return true;
+    }
     first_words = parse_words(data[arguments.first],&first_w);
     int counter = 0;
     for(int i = 0;i < first_w.count;i++){
         if(strstr(data[arguments.second], first_words[i]) != NULL)counter++;
     }
     free_words(first_words,first_w);
-    if(counter == first_w.count)printf("True\n");
-    else printf("False\n");
+    if(counter == first_w.count)printf("true");
+    else printf("false");
     return true;
 }
 bool subset(char **data, Args arguments){
@@ -315,16 +370,24 @@ bool subset(char **data, Args arguments){
     char **first_words= NULL;
     int counter = 0;
     first_words = parse_words(data[arguments.first],&first_w);
+    bool elements = true;
     for (int i = 0; i < first_w.count;i++){
         if (strstr(data[arguments.second], first_words[i]) != NULL)counter++;
+        else elements = false;
     }
     char **sec_words= NULL;
     Word_count  sec_w;
     sec_words = parse_words(data[arguments.second],&sec_w);
+    /*if (first_w.count){
+        for (int i = 0; i < sec_w.count;i++){
+            if (strstr(data[arguments.first], sec_words[i]) != NULL)elements = false;
+        }
+    }*/
     free_words(first_words,first_w);
     free_words(sec_words,sec_w);
-    if(counter < sec_w.count)printf("True\n");
-    else printf("False\n");
+    if (!elements)printf("false");
+    else if(counter < sec_w.count && counter != 0 || (first_words == 0 && sec_words != 0))printf("true");
+    else printf("false");
     return true;
 }
 bool equals(char **data, Args arguments){
@@ -342,8 +405,10 @@ bool equals(char **data, Args arguments){
     sec_words = parse_words(data[arguments.second],&sec_w);
     free_words(first_words,first_w);
     free_words(sec_words,sec_w);
-    if(counter == sec_w.count)printf("True\n");
-    else printf("False\n");
+    if (!first_w.count && !sec_w.count)printf("true");
+    else if(!first_w.count || !sec_w.count)printf("false");
+    else if(counter == sec_w.count)printf("true");
+    else printf("false");
     return true;
 }
 // OPERATIONS ON RELATIONS
@@ -791,7 +856,7 @@ bool check_op_one(char * string, char **data, int nb_of_lines, bool is_set){
             }
             if(number > nb_of_lines){error = true;break;}//breaks cuz it would segfault on following if
             if(is_set){
-                if (data[number][0] != 'S'){
+                if (data[number][0] != 'S' && data[number][0] != 'U'){
                     error = true;
                     break;
                 }
@@ -908,30 +973,39 @@ bool check_operation(char * line,char **data, int counter){
         bool set  = true;
         if(!check_op_one(line, data, counter,set)){
             fprintf(stderr,"wrong command syntax");
+            free(help_string);
             return false;
         }
     }
-    if (!strcmp(token,"union") || !strcmp(token,"intersect") || !strcmp(token,"minus") || !strcmp(token,"subseteq") || !strcmp(token,"subset") || !strcmp(token,"equals")){
+    else if (!strcmp(token,"union") || !strcmp(token,"intersect") || !strcmp(token,"minus") || !strcmp(token,"subseteq") || !strcmp(token,"subset") || !strcmp(token,"equals")){
         bool set = true;
         if(!check_op_two(line, data, counter,set)){
             fprintf(stderr,"wrong command syntax");
+            free(help_string);
             return false;
         }
     }
-    if (!strcmp(token,"reflexive") || !strcmp(token,"symmetric") || !strcmp(token,"antisymmetric") || !strcmp(token,"transitive") || !strcmp(token,"function") || !strcmp(token,"domain") || !strcmp(token,"codomain")){
+    else if (!strcmp(token,"reflexive") || !strcmp(token,"symmetric") || !strcmp(token,"antisymmetric") || !strcmp(token,"transitive") || !strcmp(token,"function") || !strcmp(token,"domain") || !strcmp(token,"codomain")){
         bool set = false;
         if(!check_op_one(line, data, counter,set)){
             fprintf(stderr,"wrong command syntax");
+            free(help_string);
             return false;
         }
     }
 
-    if (!strcmp(token,"injective") || !strcmp(token,"surjective") || !strcmp(token,"bijective")){
+    else if (!strcmp(token,"injective") || !strcmp(token,"surjective") || !strcmp(token,"bijective")){
         bool set = false;
         if(!check_op_three(line, data, counter)){
             fprintf(stderr,"wrong command syntax");
+            free(help_string);
             return false;
         }
+    }
+    else {
+        fprintf(stderr,"Wrong command syntax2");
+        free(help_string);
+        return false;
     }
     free(help_string);
     return true;
@@ -974,7 +1048,10 @@ bool print_commands(char *line,char **data){
         minus(data,arguments);
     }
     else if (!strcmp(token,"subseteq")) {
-        subseteq(data, arguments);
+        if(!subseteq(data, arguments)){
+            free(help_string);
+            return false;
+        }
     }
     else if (!strcmp(token,"subset")) {
         subset(data , arguments);
@@ -1038,7 +1115,10 @@ void print_results(char ** data, int counter, int first_op_index){
     for (int index = 1; index < first_op_index;index++){
         printf("%s", data[index]);
     }
-    for (int index = first_op_index; index <counter;index++){
+    bool is_first = true;
+    for (int index = first_op_index; index <counter+1;index++){
+        if(!is_first)printf("\n");
+        is_first = false;
         print_commands(data[index],data);
     }
 }
@@ -1049,14 +1129,15 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
     bool is_universum = false;
     bool error = false;
     bool is_operation = false;
-    int first_operation_index;
+    int first_operation_index= 0;
     int counter = 0;
     fp = fopen(argv[1], "r");
     if (fp == NULL) {
         fprintf(stderr,"File is empty");
-        return 2;}
+        return false;}
     char **data = NULL;
     int index = 1;
+    bool is_RS =false;
     while ((getline(&line, &len, fp) != -1) && error == false){
         //allocs memory for data and load the current line
         data = (char **) realloc(data, (index + 1) * sizeof(*data));
@@ -1065,16 +1146,23 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
         index++;
         counter++;
         if(counter> 1000){
-            error = false;
+            fprintf(stderr,"too many lines!");
+            fclose(fp);
+            free(line);
+            for(int j = 0; j <counter+1;j++){
+                free(data[j]);
+            }
+            free(data);
+            return false;
         }
         switch (line[0]) {
             case 'U':
                 if (!is_universum) {
-                    if(!check_words(line)){ error = true;break;}
                     //probably unnecessary, w/e
                     universum.universum = malloc(sizeof (char)* strlen(line)+1);
                     strcpy(universum.universum,line);
                     is_universum = true;
+                    if(!check_words(line)){ error = true;break;}
                 }
                 else{
                     fprintf(stderr,"More than 1 universum");
@@ -1082,17 +1170,26 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 }
                 break;
             case 'S':
+                if(!is_universum){error = true;break;}
                 if(!check_words(line)){ error = true;break;}
                 if(!check_set_with_uni(line,universum)){//checks if elements are in universum
                     error = true;
                     break;
                 }
+                is_RS = true;
                 break;
             case 'R':
+                if(!is_universum){error = true;break;}
                 if(!check_rel_with_uni(line,universum)){ error = true;break;}//checks if elements are in universum
                 if (!check_relation(line)){error = true; break;}
+                is_RS = true;
                 break;
             case 'C':
+                if(!is_RS){
+                    error = true;
+                    break;
+                }
+                if(!is_universum){error = true;break;}
                 if (!is_operation){
                     first_operation_index=counter;
                     is_operation = true;
@@ -1101,33 +1198,39 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                     error = true;
                     break;
                 }
-                /*if(!check_commands(line,data,universum)){
-                    error = true;
-                    break;
-                }
-                 */
                 break;
             default:
                 fprintf(stderr,"wrong identifier");
-                return 2;
+                return false;
         }
+    }
+    if(!first_operation_index || !is_universum){
+        fprintf(stderr,"Element missing");
+        error=true;
     }
     if(!error){
         print_results(data,counter, first_operation_index);
     }
-    free(universum.universum);
+    if(universum.universum != NULL)free(universum.universum);
     fclose(fp);
     free(line);
     for(int j = 0; j <counter+1;j++){
         free(data[j]);
     }
     free(data);
+    if(!is_RS && !error){
+        fprintf(stderr,"no Set or Relation");
+        return false;
+    }
     if(error) return false;
     return true;
 }
 
 int main(int argc, char **argv) {
-    //printf("%d aby werror nejebal ze argc not used\n\n",argc);
+    if(argc > 2){
+        fprintf(stderr,"too many arguments");
+        return 2;
+    }
     if (argv[1] == NULL){
         fprintf(stderr,"wrong argument");
         return 2;

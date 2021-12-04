@@ -7,6 +7,8 @@ S Peach Lemon Apple Banana
 R (Lemon Apple) (Banana Apple)
 R (Lemon Lemon) (Apple Peach)
 R (Lemon Apple) (Banana Peach)
+S
+C subseteq 10 10
 C reflexive 8
 C function 9
 C card 4
