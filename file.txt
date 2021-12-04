@@ -9,7 +9,7 @@ R (Lemon Lemon) (Apple Peach)
 R (Lemon Apple) (Banana Peach)
 C reflexive 8
 C function 9
-C card 2
+C card 4
 C empty 3
 C complement 2
 C union 2 3
@@ -17,7 +17,7 @@ C intersect 2 3
 C codomain 7
 C minus 2 3
 C subseteq 5 2
-C subset 4 6
 C subset 3 5
-C equals 4 6
 C equals 5 6
+C symmetric 7
+C surjective 7 2 3

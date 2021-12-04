@@ -15,6 +15,7 @@ typedef struct {
 typedef struct {
     int first;
     int second;
+    int third;
 }Args;
 
 //parses words into 2d struct, use with struct that stores the number of words, having 2d array is pain in struct...
@@ -91,8 +92,7 @@ bool check_relation(char *string){
 bool is_number(char * str){
     int len = (int) strlen(str);
     for(int i =0 ; i< len;i++){
-        if(!(str[i]>='0' && str[i] <= '9')){
-            fprintf(stderr, "wrong command");
+        if(!(str[i]>='0' && str[i] <= '9') && (str[i] != '\n')){
             return false;
         }
     }
@@ -108,22 +108,20 @@ bool find_args(char *string,Args *arguments){
     int counter = 0;
     char *ptr;
     token = strtok(help_str, delim);
-    bool error = false;
-    while (token != NULL && error==false) {
+    while (token != NULL) {
         if (counter == 2){
-            if(!is_number(token)) error = true;
             arguments->first = (int)strtol(token,&ptr,10);
         }
         if (counter == 3){
-            if(!is_number(token)) error = true;
             arguments->second = (int)strtol(token,&ptr,10);
         }
-        if (counter > 3) error = true;
+        if (counter == 4){
+            arguments->third  = (int)strtol(token,&ptr,10);
+        }
         token = strtok(NULL, delim);
         counter++;
     }
     free(help_str);
-    if (error)return  false;
     return true;
 }
 
@@ -227,9 +225,9 @@ bool check_rel_with_uni(char *line,Universum universum){
     return true;
 }
 
-bool card(char **data,Args argumnets){
+bool card(char **data,Args arguments){
     Word_count w;
-    char **words = parse_words(data[argumnets.first],&w);
+    char **words = parse_words(data[arguments.first], &w);
     printf("%d\n", w.count);
     free_words(words,w);
     return true;
@@ -285,7 +283,6 @@ bool intersect(char ** data, Args arguments){
     for (int i = 0;i < first_w.count;i++){
         if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
     }
-    printf("\n");
     free_words(first_words,first_w);
     return true;
 }
@@ -345,7 +342,6 @@ bool equals(char **data, Args arguments){
     sec_words = parse_words(data[arguments.second],&sec_w);
     free_words(first_words,first_w);
     free_words(sec_words,sec_w);
-    printf("equals:\n");
     if(counter == sec_w.count)printf("True\n");
     else printf("False\n");
     return true;
@@ -366,9 +362,6 @@ void reflexive(char **data, Args arguments){
     Word_count count;
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
-
-    printf("reflexive: ");
-
     int counter = 0;
     int size = 0;
     int unique = 0;
@@ -414,9 +407,6 @@ void reflexive(char **data, Args arguments){
     } else {
         printf("false");
     }
-
-    printf("\n");
-
     int i = 0;
     while(i != size){
         free(array[i]);
@@ -433,9 +423,6 @@ void symmetric(char **data, Args arguments){
     Word_count count;
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
-
-    printf("symmetric: ");
-
     int size = 0;
     char **array = NULL;
     int array_size = 0;
@@ -490,9 +477,6 @@ void symmetric(char **data, Args arguments){
     } else {
         printf("false");
     }
-
-    printf("\n");
-
     int i = 0;
     while(i != size){
         free(array[i]);
@@ -651,14 +635,12 @@ void function(char **data, Args arguments){
     Word_count count;
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
-
     int counter = 0;
     printf("\n");
     int size = 0;
     char **array = NULL;
     int index = 0;
     int help = 0;
-    printf("function :  ");
     while (words[counter] != NULL)
     {
         array = (char **) realloc(array, ( index + 1) * sizeof(*array));
@@ -666,7 +648,6 @@ void function(char **data, Args arguments){
 
         if (counter%2 == 0)
         {
-
 
             while(findInArray(words, size, array, counter) != false){
 
@@ -741,7 +722,7 @@ void domain(char **data, Args arguments){
 }
 
 
-
+// fix printing, it prints R Apple instead of Apple
 void codomain(char **data, Args arguments){
     Word_count count;
     char **words= NULL;
@@ -788,7 +769,175 @@ void closure_sym(char *line){ printf("works");}
 void closure_trans(char *line){ printf("works");}
 void select_random(char *line){ printf("works");}
 
-bool check_commands(char *line,char **data, Universum universum){
+bool check_op_one(char * string, char **data, int nb_of_lines, bool is_set){
+    char *help_string = malloc(sizeof (char) * strlen(string)+1);
+    strcpy(help_string,string);
+    const char delim[4] = " ";
+    char *token;
+    int counter = 0;
+    bool error = false;
+    token = strtok(help_string, delim);//skips C
+    char *ptr;
+    while (token!= NULL && error == false) {
+        if(counter == 2){
+            if(!is_number(token)) {
+                error = true;
+                break;
+            }
+            int number = (int) strtol(token,&ptr,10);
+            if (number <= 0) {
+                error = true;
+                break;
+            }
+            if(number > nb_of_lines){error = true;break;}//breaks cuz it would segfault on following if
+            if(is_set){
+                if (data[number][0] != 'S'){
+                    error = true;
+                    break;
+                }
+
+            }
+            else if (data[number][0] != 'R') {
+                error = true;
+                break;
+            }
+
+        }
+        token = strtok(NULL, delim); // skips the name of function
+        counter++;
+    }
+    if (counter != 3) error = true;
+    free(help_string);
+    if (error) return false;
+    return true;
+}
+
+bool check_op_two(char * string, char **data, int nb_of_lines, bool is_set){
+    char *help_string = malloc(sizeof (char) * strlen(string)+1);
+    strcpy(help_string,string);
+    const char delim[4] = " ";
+    char *token;
+    int counter = 0;
+    bool error = false;
+    token = strtok(help_string, delim);//skips C
+    char *ptr;
+    while (token!= NULL && error == false) {
+        if(counter == 2 || counter == 3){
+            if(!is_number(token)) {
+                error = true;
+                break;
+            }
+            int number = (int) strtol(token,&ptr,10);
+            if(number > nb_of_lines){error = true;break;}//breaks cuz it would segfault on following if
+            if(is_set){
+                if (data[number][0] != 'S') {
+                    error = true;
+                    break;
+                }
+
+            }
+            else if (data[number][0] != 'R') {
+                error = true;
+                break;
+            }
+        }
+        token = strtok(NULL, delim); // skips the name of funciton
+        counter++;
+    }
+    if (counter != 4) error = true;
+    free(help_string);
+    if (error) return false;
+    return true;
+}
+bool check_op_three(char * string, char **data, int nb_of_lines){
+    char *help_string = malloc(sizeof (char) * strlen(string)+1);
+    strcpy(help_string,string);
+    const char delim[4] = " ";
+    char *token;
+    int counter = 0;
+    bool error = false;
+    token = strtok(help_string, delim);//skips C
+    char *ptr;
+    while (token!= NULL && error == false) {
+        if(counter == 2){
+            if(!is_number(token)) {
+                error = true;
+                break;
+            }
+            int number = (int) strtol(token,&ptr,10);
+            if(number > nb_of_lines){error = true;break;}//breaks cuz it would segfault on following if
+            if (data[number][0] != 'R') {
+                error = true;
+                break;
+            }
+        }
+        if(counter == 3 || counter == 4){
+            if(!is_number(token)) {
+                error = true;
+                break;
+            }
+            int number = (int) strtol(token,&ptr,10);
+            if(number > nb_of_lines){error = true;break;}//breaks cuz it would segfault on following if
+            if (data[number][0] != 'S') {
+                error = true;
+                break;
+            }
+        }
+        token = strtok(NULL, delim); // skips the name of funciton
+        counter++;
+    }
+    if (counter != 5) error = true;
+    free(help_string);
+    if (error) return false;
+    return true;
+}
+
+bool check_operation(char * line,char **data, int counter){
+    char *help_string = malloc(sizeof (char) * strlen(line)+1);
+    strcpy(help_string,line);
+    const char delim[4] = " ";
+    char *token;
+    token = strtok(help_string, delim);//skips C
+    token = strtok(NULL, delim);
+    if (token == NULL) {
+        free(help_string);
+        fprintf(stderr,"wrong command syntax");
+        return false;
+    }
+    if (!strcmp(token,"empty") || !strcmp(token,"card") || !strcmp(token,"complement")){
+        bool set  = true;
+        if(!check_op_one(line, data, counter,set)){
+            fprintf(stderr,"wrong command syntax");
+            return false;
+        }
+    }
+    if (!strcmp(token,"union") || !strcmp(token,"intersect") || !strcmp(token,"minus") || !strcmp(token,"subseteq") || !strcmp(token,"subset") || !strcmp(token,"equals")){
+        bool set = true;
+        if(!check_op_two(line, data, counter,set)){
+            fprintf(stderr,"wrong command syntax");
+            return false;
+        }
+    }
+    if (!strcmp(token,"reflexive") || !strcmp(token,"symmetric") || !strcmp(token,"antisymmetric") || !strcmp(token,"transitive") || !strcmp(token,"function") || !strcmp(token,"domain") || !strcmp(token,"codomain")){
+        bool set = false;
+        if(!check_op_one(line, data, counter,set)){
+            fprintf(stderr,"wrong command syntax");
+            return false;
+        }
+    }
+
+    if (!strcmp(token,"injective") || !strcmp(token,"surjective") || !strcmp(token,"bijective")){
+        bool set = false;
+        if(!check_op_three(line, data, counter)){
+            fprintf(stderr,"wrong command syntax");
+            return false;
+        }
+    }
+    free(help_string);
+    return true;
+}
+
+bool print_commands(char *line,char **data){
     //using help string because strtok changes the string it is using
     //and need line intact for further use
     char *help_string = malloc(sizeof (char) * strlen(line)+1);
@@ -885,13 +1034,12 @@ bool check_commands(char *line,char **data, Universum universum){
     return true;
 }
 
-void print_results(char ** data, int counter){
-    //print only U,S and R
-    //then call a function that has results of operations
-    for (int i = 0; i <counter;i++){
-        //if (data[i][0] == 'C') {
-        //printf("line %s \n", data[i]);
-        //}
+void print_results(char ** data, int counter, int first_op_index){
+    for (int index = 1; index < first_op_index;index++){
+        printf("%s", data[index]);
+    }
+    for (int index = first_op_index; index <counter;index++){
+        print_commands(data[index],data);
     }
 }
 
@@ -900,6 +1048,8 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
     size_t len = 0;
     bool is_universum = false;
     bool error = false;
+    bool is_operation = false;
+    int first_operation_index;
     int counter = 0;
     fp = fopen(argv[1], "r");
     if (fp == NULL) {
@@ -943,9 +1093,19 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 if (!check_relation(line)){error = true; break;}
                 break;
             case 'C':
-                if(!check_commands(line,data,universum)){
+                if (!is_operation){
+                    first_operation_index=counter;
+                    is_operation = true;
+                }
+                if(!check_operation(line,data,counter)){
+                    error = true;
                     break;
                 }
+                /*if(!check_commands(line,data,universum)){
+                    error = true;
+                    break;
+                }
+                 */
                 break;
             default:
                 fprintf(stderr,"wrong identifier");
@@ -953,7 +1113,7 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
         }
     }
     if(!error){
-        print_results(data,counter);
+        print_results(data,counter, first_operation_index);
     }
     free(universum.universum);
     fclose(fp);
@@ -974,6 +1134,6 @@ int main(int argc, char **argv) {
     }
     FILE *fp;
     Universum universum;
-    check_document(fp,argv,universum);
+    if(!check_document(fp,argv,universum)) return 2;
     return 0;
 }
