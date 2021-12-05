@@ -987,6 +987,7 @@ void bijective(char **data, Args arguments){
     free_words(third_words,third_w);
 }
 
+// checks operations with 1 argument
 bool check_op_one(char * string, char **data, int nb_of_lines, bool is_set){
     char *help_string = malloc(sizeof (char) * strlen(string)+1);
     strcpy(help_string,string);
@@ -997,7 +998,7 @@ bool check_op_one(char * string, char **data, int nb_of_lines, bool is_set){
     token = strtok(help_string, delim);//skips C
     char *ptr;
     while (token!= NULL && error == false) {
-        if(counter == 2){
+        if(counter == 2){ // checks if second word (not counter C) is number
             if(!is_number(token)) {
                 error = true;
                 break;
@@ -1007,9 +1008,9 @@ bool check_op_one(char * string, char **data, int nb_of_lines, bool is_set){
                 error = true;
                 break;
             }
-            if(number > nb_of_lines){error = true;break;}//breaks cuz it would segfault on following if
-            if(is_set){
-                if (data[number][0] != 'S' && data[number][0] != 'U'){
+            if(number > nb_of_lines){error = true;break;}//breaks because it would segfault on following if , checks if the number is greater than the number of lines
+            if(is_set){ // if the operation is on set
+                if (data[number][0] != 'S' && data[number][0] != 'U'){ // if first word is not U or S, error sets to true and subsequently, the function returns false
                     error = true;
                     break;
                 }
@@ -1024,12 +1025,12 @@ bool check_op_one(char * string, char **data, int nb_of_lines, bool is_set){
         token = strtok(NULL, delim); // skips the name of function
         counter++;
     }
-    if (counter != 3) error = true;
+    if (counter != 3) error = true; // if there is  not  1 argument, returns false
     free(help_string);
     if (error) return false;
     return true;
 }
-
+// checks operations with 2 arguments
 bool check_op_two(char * string, char **data, int nb_of_lines, bool is_set){
     char *help_string = malloc(sizeof (char) * strlen(string)+1);
     strcpy(help_string,string);
@@ -1040,14 +1041,14 @@ bool check_op_two(char * string, char **data, int nb_of_lines, bool is_set){
     token = strtok(help_string, delim);//skips C
     char *ptr;
     while (token!= NULL && error == false) {
-        if(counter == 2 || counter == 3){
+        if(counter == 2 || counter == 3){ // if 1st or 2nd arguments are not number, error sets to true
             if(!is_number(token)) {
                 error = true;
                 break;
             }
             int number = (int) strtol(token,&ptr,10);
-            if(number > nb_of_lines){error = true;break;}//breaks cuz it would segfault on following if
-            if(is_set){
+            if(number > nb_of_lines){error = true;break;}//breaks cuz it would segfault on following if,  checks if the number is greater than the number of lines
+            if(is_set){ // same as previous function
                 if (data[number][0] != 'S') {
                     error = true;
                     break;
@@ -1059,14 +1060,15 @@ bool check_op_two(char * string, char **data, int nb_of_lines, bool is_set){
                 break;
             }
         }
-        token = strtok(NULL, delim); // skips the name of funciton
+        token = strtok(NULL, delim); // skips the name of function
         counter++;
     }
-    if (counter != 4) error = true;
+    if (counter != 4) error = true; // if there are not  2 arguments, returns false
     free(help_string);
     if (error) return false;
     return true;
 }
+// checks operations with 3 arguments
 bool check_op_three(char * string, char **data, int nb_of_lines){
     char *help_string = malloc(sizeof (char) * strlen(string)+1);
     strcpy(help_string,string);
@@ -1077,39 +1079,39 @@ bool check_op_three(char * string, char **data, int nb_of_lines){
     token = strtok(help_string, delim);//skips C
     char *ptr;
     while (token!= NULL && error == false) {
-        if(counter == 2){
+        if(counter == 2){// if 1st argument is not number, error sets to true
             if(!is_number(token)) {
                 error = true;
                 break;
             }
             int number = (int) strtol(token,&ptr,10);
             if(number > nb_of_lines){error = true;break;}//breaks cuz it would segfault on following if
-            if (data[number][0] != 'R') {
+            if (data[number][0] != 'R') { // first argument must point to a relation
                 error = true;
                 break;
             }
         }
-        if(counter == 3 || counter == 4){
+        if(counter == 3 || counter == 4){ // if 2nd or 3rd arguments are not number, error sets to true
             if(!is_number(token)) {
                 error = true;
                 break;
             }
             int number = (int) strtol(token,&ptr,10);
             if(number > nb_of_lines){error = true;break;}//breaks cuz it would segfault on following if
-            if (data[number][0] != 'S') {
+            if (data[number][0] != 'S') { // 2nd and 3rd arguments must point to sets
                 error = true;
                 break;
             }
         }
-        token = strtok(NULL, delim); // skips the name of funciton
+        token = strtok(NULL, delim); // skips the name of function
         counter++;
     }
-    if (counter != 5) error = true;
+    if (counter != 5) error = true; // there must be only 3 arguments
     free(help_string);
     if (error) return false;
     return true;
 }
-
+//checks the validity of operation
 bool check_operation(char * line,char **data, int counter){
     char *help_string = malloc(sizeof (char) * strlen(line)+1);
     strcpy(help_string,line);
@@ -1117,22 +1119,23 @@ bool check_operation(char * line,char **data, int counter){
     char *token;
     token = strtok(help_string, delim);//skips C
     token = strtok(NULL, delim);
-    if (token == NULL) {
+    if (token == NULL) { // if only C is present, the syntax is wrong, returns false
         free(help_string);
         fprintf(stderr,"wrong command syntax");
         return false;
     }
-    if (!strcmp(token,"empty") || !strcmp(token,"card") || !strcmp(token,"complement")){
+    if (!strcmp(token,"empty") || !strcmp(token,"card") || !strcmp(token,"complement")){ //if 2nd word is one of these words, calls function that check it
         bool set  = true;
-        if(!check_op_one(line, data, counter,set)){
+        if(!check_op_one(line, data, counter,set)){//these functions are on sets and require 1 argument
             fprintf(stderr,"wrong command syntax");
             free(help_string);
             return false;
         }
     }
+        //if 2nd word is one of these words, calls function that check it
     else if (!strcmp(token,"union") || !strcmp(token,"intersect") || !strcmp(token,"minus") || !strcmp(token,"subseteq") || !strcmp(token,"subset") || !strcmp(token,"equals")){
         bool set = true;
-        if(!check_op_two(line, data, counter,set)){
+        if(!check_op_two(line, data, counter,set)){//these functions are on sets and require 2 arguments
             fprintf(stderr,"wrong command syntax");
             free(help_string);
             return false;
@@ -1140,7 +1143,7 @@ bool check_operation(char * line,char **data, int counter){
     }
     else if (!strcmp(token,"reflexive") || !strcmp(token,"symmetric") || !strcmp(token,"antisymmetric") || !strcmp(token,"transitive") || !strcmp(token,"function") || !strcmp(token,"domain") || !strcmp(token,"codomain")){
         bool set = false;
-        if(!check_op_one(line, data, counter,set)){
+        if(!check_op_one(line, data, counter,set)){//these functions are on relations and require 1 argument
             fprintf(stderr,"wrong command syntax");
             free(help_string);
             return false;
@@ -1149,20 +1152,20 @@ bool check_operation(char * line,char **data, int counter){
 
     else if (!strcmp(token,"injective") || !strcmp(token,"surjective") || !strcmp(token,"bijective")){
         if(!check_op_three(line, data, counter)){
-            fprintf(stderr,"wrong command syntax");
+            fprintf(stderr,"wrong command syntax");//these functions are on relations and require 3 argument
             free(help_string);
             return false;
         }
     }
     else {
-        fprintf(stderr,"Wrong command syntax2");
+        fprintf(stderr,"Wrong command syntax2"); // the 2nd word is not an operation, returns false
         free(help_string);
         return false;
     }
     free(help_string);
     return true;
 }
-
+//calls operation functions
 bool print_commands(char *line,char **data){
     //using help string because strtok changes the string it is using
     //and need line intact for further use
@@ -1170,13 +1173,13 @@ bool print_commands(char *line,char **data){
     strcpy(help_string,line);
     const char delim[4] = " ";
     Args arguments;
-    if (!find_args(help_string,&arguments)){
+    if (!find_args(help_string,&arguments)){ // finds the arguments contained on the line
         free(help_string);
         return false;
     }
     char *token;
     token = strtok(help_string, delim);
-    token = strtok(NULL, delim);
+    token = strtok(NULL, delim); // if only C is present, returns false
     if (token == NULL) {
         free(help_string);
         return false;
@@ -1251,12 +1254,14 @@ bool print_commands(char *line,char **data){
 }
 
 void print_results(char ** data, int counter, int first_op_index){
+    //prints universum, all  sets and relations
     for (int index = 1; index < first_op_index;index++){
         printf("%s", data[index]);
     }
     bool is_first = true;
+    //prints outcomes of operations
     for (int index = first_op_index; index <counter+1;index++){
-        if(!is_first)printf("\n");
+        if(!is_first)printf("\n"); // new line after each operation except for 1st
         is_first = false;
         print_commands(data[index],data);
     }
