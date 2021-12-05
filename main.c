@@ -1272,11 +1272,11 @@ void print_results(char ** data, int counter, int first_op_index){
 bool check_document(FILE *fp,char  **argv, Universum universum){
     char *line = NULL; //for getline function
     size_t len = 0; //for getline function
-    bool is_universum = false; //to check
+    bool is_universum = false; //to check if universum is present
     bool error = false;
     bool is_operation = false;
-    int first_operation_index= 0;
-    int counter = 0;
+    int first_operation_index= 0; //the first occurrence of an operation
+    int counter = 0; // number of lines
     fp = fopen(argv[1], "r");
     if (fp == NULL) {
         fprintf(stderr,"File is empty");
@@ -1284,27 +1284,27 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
     char **data = NULL;
     int index = 1;
     data = (char **) malloc((index + 1) * sizeof(*data));
-    bool is_RS =false;
-    while ((getline(&line, &len, fp) != -1) && error == false){
+    bool is_RS =false; // to check if relation or set is present
+    while ((getline(&line, &len, fp) != -1) && error == false){ // reads 1 line from the document, stores it in line, stores it's length in len
         //allocs memory for data and load the current line
-        data = (char **) realloc(data, (index + 1) * sizeof(*data));
+        data = (char **) realloc(data, (index + 1) * sizeof(*data)); // reallocs the column size to match the current iteration
         if ( data == NULL){
             free(line);
             fclose(fp);
             fprintf(stderr,"error allocating memory");
             return false;
         }
-        data[index] = (char *)malloc(sizeof(char)*  strlen(line)+1);
+        data[index] = (char *)malloc(sizeof(char)*  strlen(line)+1); // allocates a row equal to the size of line
         if ( data == NULL){
             free(line);
             fclose(fp);
             fprintf(stderr,"error allocating memory");
             return false;
         }
-        strcpy(data[index], line);
+        strcpy(data[index], line);//copies the line to previously allocated space in 2d array
         index++;
         counter++;
-        if(counter> 1000){
+        if(counter> 1000){ //checks for the limit of 1000 lines
             fprintf(stderr,"too many lines!");
             fclose(fp);
             free(line);
@@ -1315,14 +1315,13 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
             free(data);
             return false;
         }
-        switch (line[0]) {
+        switch (line[0]) {//checks the first character of line
             case 'U':
                 if (!is_universum) {
-                    //probably unnecessary, w/e
-                    universum.universum = malloc(sizeof (char)* strlen(line)+1);
+                    universum.universum = malloc(sizeof (char)* strlen(line)+1);//stores the line to struct universum
                     strcpy(universum.universum,line);
-                    is_universum = true;
-                    if(!check_words(line)){ error = true;break;}
+                    is_universum = true; // sets to true because universe is present
+                    if(!check_words(line)){ error = true;break;} // checks if the line does not contain any invalid characters
                 }
                 else{
                     fprintf(stderr,"More than 1 universum");
@@ -1330,45 +1329,45 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 }
                 break;
             case 'S':
-                if(is_operation){
+                if(is_operation){ //operation has to be AFTER sets
                     fprintf(stderr,"wrong order");
                     error = true;
                     break;}
-                if(!is_universum){error = true;break;}
-                if(!check_words(line)){ error = true;break;}
+                if(!is_universum){error = true;break;} // set has to be AFTER universum
+                if(!check_words(line)){ error = true;break;}// checks if the elements are correct
                 if(!check_set_with_uni(line,universum)){//checks if elements are in universum
                     error = true;
                     break;
                 }
-                is_RS = true;
+                is_RS = true; // sets to true because set is present
                 break;
             case 'R':
-                if(is_operation){
+                if(is_operation){ // operations have to be AFTER relations
                     fprintf(stderr,"wrong order");
                     error = true;
                     break;}
-                if(!is_universum){
+                if(!is_universum){ // relations have to be AFTER universum
                     error = true;
                     break;}
                 if(!check_rel_with_uni(line,universum)){ error = true;break;}//checks if elements are in universum
-                if (!check_relation(line)){
+                if (!check_relation(line)){ // checks if syntax of relation is valid
                     error = true;
                     break;}
-                is_RS = true;
+                is_RS = true;  // sets to true because relation is present
                 break;
             case 'C':
-                if(!is_RS){
+                if(!is_RS){ //operation has to be AFTER sets and relations
                     error = true;
                     break;
                 }
-                if(!is_universum){
+                if(!is_universum){//operation has to be AFTER universum
                     error = true;
                     break;}
-                if (!is_operation){
+                if (!is_operation){ // sets the index to current iteration if it is first operation occurrence
                     first_operation_index=counter;
                     is_operation = true;
                 }
-                if(!check_operation(line,data,counter)){
+                if(!check_operation(line,data,counter)){ // checks the syntax of operation
                     error = true;
                     break;
                 }
@@ -1385,11 +1384,11 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 return false;
         }
     }
-    if(!first_operation_index || !is_universum){
+    if(!first_operation_index || !is_universum){ // error sets to true if no universum or operations are present
         fprintf(stderr,"Element missing");
         error=true;
     }
-    if(!error){
+    if(!error){ // calls print function if no errors are present
         print_results(data,counter, first_operation_index);
     }
     if(universum.universum != NULL)free(universum.universum);
@@ -1401,7 +1400,7 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
     }
 
     free(data);
-    if(!is_RS && !error){
+    if(!is_RS && !error){ //if no relations or sets are present, returns false
         fprintf(stderr,"no Set or Relation");
         return false;
     }
