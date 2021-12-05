@@ -76,10 +76,16 @@ bool check_relation(char *string){
         token = strtok(NULL, delim);
         if (token == NULL) break;
         if (counter%2 == 0){
-            if (token[0] != '(')return false;
+            if (token[0] != '('){
+                free(help_string);
+                return false;
+            }
         }
         if (counter%2 == 1){
-            if(token[strlen(token)-1] != ')')return false;
+            if(token[strlen(token)-1] != ')'){
+                free(help_string);
+                return false;
+            }
         }
         counter++;
     }
@@ -150,6 +156,10 @@ bool duplicit(char *string){
         token = strtok(NULL, delim);
         if (token == NULL) break;
         if(strlen(token) > 30){
+            w.count = counter;
+            if (data != NULL){
+                free_words(data,w);
+            }
             free(help_string);
             fprintf(stderr,"element is too long");
             return false;
@@ -168,6 +178,8 @@ bool duplicit(char *string){
     for(int i = 0; i <counter;i++){
         for(int j = i+1;j<counter;j++){
             if(!strcmp(data[i],data[j])){
+                free(help_string);
+                free_words(data,w);
                 return false;
             }
         }
@@ -206,6 +218,7 @@ bool check_set_with_uni(char *line,Universum universum){
     for (int i = 0; i < w.count;i++){
         if((strstr(universum.universum, set_words[i]) == NULL)){
             fprintf(stderr,"Word is not in universum");
+            free_words(set_words,w);
             return false;
         }
     }
@@ -236,7 +249,7 @@ bool check_rel_with_uni(char *line,Universum universum){
 bool card(char **data,Args arguments){
     Word_count w;
     char **words = parse_words(data[arguments.first], &w);
-    printf("%d\n", w.count);
+    printf("%d", w.count);
     free_words(words,w);
     return true;
 }
@@ -280,7 +293,6 @@ bool union_f(char **data, Args arguments){
     for (int i = 0; i < sec_w.count; i++) {
         printf("%s ", second_words[i]);
     }
-    printf("\n");
     free_words(first_words,first_w);
     free_words(second_words,sec_w);
     return true;
@@ -302,10 +314,7 @@ bool minus(char **data, Args arguments){
     first_words = parse_words(data[arguments.first],&first_w);
     printf("S ");
     for (int i = 0; i < first_w.count;i++){
-        if(i == first_w.count-1){
-            if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s", first_words[i]);
-        }
-        else if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
+        if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
     }
     free_words(first_words,first_w);
     return true;
@@ -348,7 +357,7 @@ bool subset(char **data, Args arguments){
     free_words(first_words,first_w);
     free_words(sec_words,sec_w);
     if (!elements)printf("false");
-    else if(counter < sec_w.count && counter != 0 || (first_words == 0 && sec_words != 0))printf("true");
+    else if((counter < sec_w.count && counter != 0) || (first_words == 0 && sec_words != 0))printf("true");
     else printf("false");
     return true;
 }
@@ -387,70 +396,49 @@ bool findInArray(char **words, int size, char **array, int counter){
 }
 void reflexive(char **data, Args arguments){
     Word_count count;
+    Word_count u;
+    char **universum= NULL;
+    universum = parse_relation(data[1], &u);
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
-    int counter = 0;
-    int size = 0;
-    int unique = 0;
-    int equal = 0;
-    char **array = NULL;
-    char **array2 = NULL;
-    char **array3 = NULL;
-    int index = 0;
-    int index2 = 0;
-
-    while (words[counter] != NULL) {
-        array = (char **) realloc(array, ( index + 1) * sizeof(*array));
-        array2 = (char **) realloc(array2, ( index + 1) * sizeof(*array2));
-        array3 = (char **) realloc(array3, ( index + 1) * sizeof(*array3));
-
-        if(findInArray(words, size, array3, counter) == true){
-
-            array3[index2] = (char *)malloc(sizeof(char)*  strlen(words[counter])+1);
-            strcpy(array3[index2], words[counter]);
-            size++;
-            index2++;
-            unique++;
-        }
-
-        if (counter%2 == 0) {
-            array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter])+1);
-            strcpy(array[index], words[counter]);
-
-            array2[index] = (char *)malloc(sizeof(char)*  strlen(words[counter + 1])+1);
-            strcpy(array2[index], words[counter + 1]);
-
-            if (strstr(array[index], array2[index])) {
-                equal++;
+    if (count.count == 0 && u.count == 0){
+        free_words(words,count);
+        printf("true");
+        return;
+    }
+    if (count.count == 0){
+        free_words(words,count);
+        free_words(universum,u);
+        printf("false");
+        return;
+    }
+    bool reflexive_element = false;
+    for( int i = 0; i < u.count;i++){
+        for(int j = 0; j < count.count;j+=2){
+            if ( (strcmp(universum[i],words[j])==0) && (strcmp(universum[i],words[j+1])==0) ){
+                reflexive_element = true;
+                break;
             }
 
-            index++;
         }
+        if(!reflexive_element){
+            free_words(words,count);
+            free_words(universum,u);
+            printf("false");
+            return;
 
-        counter++;
+        }
+        reflexive_element =false;
     }
-    if (unique == equal) {
-        printf("true");
-    } else {
-        printf("false");
-    }
-    int i = 0;
-    while(i != size){
-        free(array[i]);
-        free(array2[i]);
-        free(array3[i]);
-        i++;
-    }
-    free(array);
-    free(array2);
-    free(array3);
-    free_words(words, count);
+
+    free_words(universum,u);
+    free_words(words,count);
+    printf("true");
 }
 void symmetric(char **data, Args arguments){
     Word_count count;
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
-    int size = 0;
     char **array = NULL;
     int array_size = 0;
     char **array2 = NULL;
@@ -505,13 +493,19 @@ void symmetric(char **data, Args arguments){
         printf("false");
     }
     int i = 0;
-    while(i != size){
+    while(i != index){
         free(array[i]);
         free(array2[i]);
+        i++;
+    }
+
+    i = 0;
+    while(i != index2){
         free(array3[i]);
         free(array4[i]);
         i++;
     }
+
     free(array);
     free(array2);
     free(array3);
@@ -523,9 +517,8 @@ void antisymmetric(char **data, Args arguments){
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
 
-    printf("antisymmetric: ");
 
-    int size = 0;
+
     char **array = NULL;
     int array_size = 0;
     char **array2 = NULL;
@@ -533,7 +526,6 @@ void antisymmetric(char **data, Args arguments){
     char **array4 = NULL;
     int index = 0;
     int index2 = 0;
-    int antisymmetric_dispute = 0;
     int relations_counter = 0;
 
     for (int i = 0; i < count.count; i++) {
@@ -566,19 +558,41 @@ void antisymmetric(char **data, Args arguments){
 
             for (int j = 0; j < array_size; j++) {
                 if ((strstr(array[j], array3[index2])) && (strstr(array2[j], array4[index2])) && !(strstr(array3[index2], array4[index2]))) {
-                    antisymmetric_dispute = 1;
-                    printf("false\n");
+                    printf("false");
+                    int k = 0;
+                    while(k != index){
+                        free(array[k]);
+                        free(array2[k]);
+                        k++;
+                    }
+
+                    k = 0;
+                    while(k != index2){
+                        free(array3[k]);
+                        free(array4[k]);
+                        k++;
+                    }
+                    free(array);
+                    free(array2);
+                    free(array3);
+                    free(array4);
+                    free_words(words, count);
                     return;
                 }
             }
             index2++;
         }
     }
-    printf("true\n");
+    printf("true");
     int i = 0;
-    while(i != size){
+    while(i != index){
         free(array[i]);
         free(array2[i]);
+        i++;
+    }
+
+    i = 0;
+    while(i != index2){
         free(array3[i]);
         free(array4[i]);
         i++;
@@ -594,16 +608,10 @@ void transitive(char **data, Args arguments){
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
 
-    printf("transitive: ");
-
-    int size = 0;
     char **array = NULL;
     int array_size = 0;
     char **array2 = NULL;
-    char **array3 = NULL;
-    char **array4 = NULL;
     int index = 0;
-    int index2 = 0;
     int relations_counter = 0;
     int is_transitive = 0;
 
@@ -636,7 +644,16 @@ void transitive(char **data, Args arguments){
                         is_transitive = 1;
                     }
                     if ((k == array_size-1) && (is_transitive == 0)) {
-                        printf("false\n");
+                        printf("false");
+                        int l = 0;
+                        while(l != index){
+                            free(array[l]);
+                            free(array2[l]);
+                            l++;
+                        }
+                        free(array);
+                        free(array2);
+                        free_words(words, count);
                         return;
                     }
                 }
@@ -644,10 +661,10 @@ void transitive(char **data, Args arguments){
         }
     }
 
-    printf("true\n");
+    printf("true");
 
     int i = 0;
-    while(i != size){
+    while(i != index){
         free(array[i]);
         free(array2[i]);
         i++;
@@ -662,44 +679,36 @@ void function(char **data, Args arguments){
     Word_count count;
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
-    int counter = 0;
-    printf("\n");
-    int size = 0;
     char **array = NULL;
     int index = 0;
     int help = 0;
-    while (words[counter] != NULL)
+    for (int i = 0; i < count.count; i++)
     {
         array = (char **) realloc(array, ( index + 1) * sizeof(*array));
         //array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
 
-        if (counter%2 == 0)
+        if (i%2 == 0)
         {
 
-            while(findInArray(words, size, array, counter) != false){
+            while(findInArray(words, index, array, i) != false){
 
                 help++;
-                array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter])+1);
-                strcpy(array[index], words[counter]);
-                size++;
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
+                strcpy(array[index], words[i]);
                 index++;
             }
         }
-        counter++;
     }
 
-    int help2 = counter/2;
-    if(help2 != help){printf("false");}
+    if(index != count.count/2){printf("false");}
     else{printf("true");}
 
     int i = 0;
-    while(i != size){
+    while(i != index){
         free(array[i]);
         i++;
     }
-    //printf("%d", help);
-    //printf("%d", help2);
-    printf("\n");
+
     free(array);
     free_words(words, count);
 
@@ -711,36 +720,30 @@ void domain(char **data, Args arguments){
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
 
-    int counter = 0;
-    printf("\n");
-    int size = 0;
     char **array = NULL;
     int index = 0;
 
-    printf("R ");
-    while (words[counter] != NULL)
+    printf("S ");
+    for (int i = 0; i < count.count; i++)
     {
         array = (char **) realloc(array, ( index + 1) * sizeof(*array));
         //array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
 
-        if (counter%2 == 0)
+        if (i%2 == 0)
         {
-            if(findInArray(words, size, array, counter) == true){
+            if(findInArray(words, index, array, i) == true){
 
-                array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter])+1);
-                strcpy(array[index], words[counter]);
-                size++;
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
+                strcpy(array[index], words[i]);
                 printf("%s ", array[index]);
                 index++;
             }
         }
-        counter++;
     }
-    printf("\n");
 
 
     int i = 0;
-    while(i != size){
+    while(i != index){
         free(array[i]);
         i++;
     }
@@ -754,47 +757,219 @@ void codomain(char **data, Args arguments){
     Word_count count;
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
-    int counter = 0;
-    printf("\n");
-    int size = 0;
+
     char **array = NULL;
     int index = 0;
 
-    printf("R ");
-    while (words[counter] != NULL)
+    printf("S ");
+    for (int i = 0; i < count.count; i++)
     {
         array = (char **) realloc(array, ( index +1) * sizeof(*array));
         //array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
 
-        if (counter%2 != 0)
+        if (i%2 != 0)
         {
-            if(findInArray(words, size, array, counter) == true){
-                array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter])+1);
-                strcpy(array[index], words[counter]);
-                size++;
+            if(findInArray(words, index, array, i) == true){
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
+                strcpy(array[index], words[i]);
                 printf("%s ", array[index]);
                 index++;
             }
         }
-        counter++;
     }
-    printf("\n");
     int i = 0;
-    while(i != size){
+    while(i != index){
         free(array[i]);
         i++;
     }
     free(array);
     free_words(words, count);
 }
-void injective(char *line){ printf("works");}
-void surjetive(char *line){ printf("works");}
-void bijective(char *line){ printf("works");}
-//bonus
-void closure_ref(char *line){ printf("works");}
-void closure_sym(char *line){ printf("works");}
-void closure_trans(char *line){ printf("works");}
-void select_random(char *line){ printf("works");}
+
+void injective(char **data, Args arguments){
+    if(!duplicit(data[arguments.first])){
+        printf("false");
+        return;
+    }
+    Word_count count;
+    char **words= NULL;
+    words = parse_relation(data[arguments.first], &count);
+    Word_count sec_w;
+    char **sec_words= NULL;
+    sec_words = parse_relation(data[arguments.second], &sec_w);
+
+    Word_count third_w;
+    char **third_words= NULL;
+    third_words = parse_relation(data[arguments.third], &third_w);
+
+    int x_counter = 0;
+    int y_counter = 0;
+    for(int index = 0; index <count.count;index++){
+        if(index%2 == 0){
+            for(int i = 0; i < sec_w.count;i++){
+                if(strcmp(words[index],sec_words[i]) == 0){
+                    x_counter++;
+                    break;
+                }
+            }
+        }
+        else {
+            for(int i = 0; i < third_w.count;i++){
+                if(strcmp(words[index],third_words[i]) == 0){
+                    y_counter++;
+                    break;
+                }
+            }
+        }
+    }
+    if (count.count == 0 && sec_w.count == 0 && third_w.count == 0){
+        printf("true");
+    }
+    else if (count.count != 0 && sec_w.count == 0 && third_w.count == 0){
+        printf("false");
+    }
+    else if ( count.count == 0){
+        printf("false");
+    }
+    else if(x_counter == sec_w.count && x_counter == y_counter){
+        printf("true");
+    }
+    else printf("false");
+    free_words(words,count);
+    free_words(sec_words,sec_w);
+    free_words(third_words,third_w);
+}
+void surjetive(char **data, Args arguments){
+    Word_count count;
+    char **words= NULL;
+    words = parse_relation(data[arguments.first], &count);
+    Word_count sec_w;
+    char **sec_words= NULL;
+    sec_words = parse_relation(data[arguments.second], &sec_w);
+
+    Word_count third_w;
+    char **third_words= NULL;
+    third_words = parse_relation(data[arguments.third], &third_w);
+
+    int x_counter = 0;
+    int y_counter = 0;
+    for(int index = 0; index <count.count;index++){
+        if(index%2 == 0){
+            for(int i = 0; i < sec_w.count;i++){
+                if(strcmp(words[index],sec_words[i]) == 0){
+                    x_counter++;
+                    break;
+                }
+            }
+        }
+        else {
+            for(int i = 0; i < third_w.count;i++){
+                if(strcmp(words[index],third_words[i]) == 0){
+                    y_counter++;
+                    break;
+                }
+            }
+        }
+    }
+    for(int i = 0; i <count.count;i+=2){
+        for(int j = i+1;j<count.count;j+=2){
+            if(!strcmp(words[i],words[j])){
+                printf("false");
+                free_words(words,count);
+                free_words(sec_words,sec_w);
+                free_words(third_words,third_w);
+                return;
+            }
+        }
+    }
+    bool found = false;
+    for(int i = 0; i <third_w.count;i++){
+        found = false;
+        for(int j = 1;j<count.count;j+=2){
+            if(strcmp(third_words[i],words[j]) == 0){
+                found = true;
+                break;
+            }
+        }
+        if (!found){
+            printf("false");
+            free_words(words,count);
+            free_words(sec_words,sec_w);
+            free_words(third_words,third_w);
+            return;
+        }
+    }
+
+    if (count.count == 0 && sec_w.count == 0 && third_w.count == 0){
+        printf("true");
+    }
+    else if (count.count != 0 && sec_w.count == 0 && third_w.count == 0){
+        printf("false");
+    }
+    else if ( count.count == 0){
+        printf("false");
+    }
+    else if(x_counter == sec_w.count && x_counter == y_counter){
+        printf("true");
+    }
+    else printf("false");
+    free_words(words,count);
+    free_words(sec_words,sec_w);
+    free_words(third_words,third_w);
+}
+void bijective(char **data, Args arguments){
+    if(!duplicit(data[arguments.first])){
+        printf("false");
+        return;
+    }
+    Word_count count;
+    char **words= NULL;
+    words = parse_relation(data[arguments.first], &count);
+    Word_count sec_w;
+    char **sec_words= NULL;
+    sec_words = parse_relation(data[arguments.second], &sec_w);
+
+    Word_count third_w;
+    char **third_words= NULL;
+    third_words = parse_relation(data[arguments.third], &third_w);
+
+    int x_counter = 0;
+    int y_counter = 0;
+    for(int index = 0; index <count.count;index++){
+        if(index%2 == 0){
+            for(int i = 0; i < sec_w.count;i++){
+                if(strcmp(words[index],sec_words[i]) == 0){
+                    x_counter++;
+                    break;
+                }
+            }
+        }
+        else {
+            for(int i = 0; i < third_w.count;i++){
+                if(strcmp(words[index],third_words[i]) == 0){
+                    y_counter++;
+                    break;
+                }
+            }
+        }
+    }
+    if (count.count == 0 && sec_w.count == 0 && third_w.count == 0){
+        printf("true");
+    }
+    else if (count.count != 0 && sec_w.count == 0 && third_w.count == 0){
+        printf("false");
+    }
+    else if ( count.count == 0){
+        printf("false");
+    }
+    else if(x_counter == sec_w.count && (y_counter == third_w.count) && x_counter == y_counter){
+        printf("true");
+    }
+    else printf("false");
+    free_words(words,count);
+    free_words(sec_words,sec_w);
+    free_words(third_words,third_w);
+}
 
 bool check_op_one(char * string, char **data, int nb_of_lines, bool is_set){
     char *help_string = malloc(sizeof (char) * strlen(string)+1);
@@ -957,7 +1132,6 @@ bool check_operation(char * line,char **data, int counter){
     }
 
     else if (!strcmp(token,"injective") || !strcmp(token,"surjective") || !strcmp(token,"bijective")){
-        bool set = false;
         if(!check_op_three(line, data, counter)){
             fprintf(stderr,"wrong command syntax");
             free(help_string);
@@ -1043,26 +1217,13 @@ bool print_commands(char *line,char **data){
         codomain(data, arguments);
     }
     else if (!strcmp(token,"injective")) {
-        injective(line);
+        injective(data, arguments);
     }
     else if (!strcmp(token,"surjective")) {
-        surjetive(line);
+        surjetive(data, arguments);
     }
     else if (!strcmp(token,"bijective")) {
-        bijective(line);
-    }
-        //bonus functions
-    else if (!strcmp(token,"closure_sym")) {
-        closure_sym(line);
-    }
-    else if (!strcmp(token,"closure_ref")) {
-        closure_ref(line);
-    }
-    else if (!strcmp(token,"closure_trans")) {
-        closure_trans(line);
-    }
-    else if (!strcmp(token,"select")) {
-        select_random(line);//can not use select, already defined C function
+        bijective(data, arguments);
     }
     else{
         fprintf(stderr, "wrong command");
@@ -1099,11 +1260,24 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
         return false;}
     char **data = NULL;
     int index = 1;
+    data = (char **) malloc((index + 1) * sizeof(*data));
     bool is_RS =false;
     while ((getline(&line, &len, fp) != -1) && error == false){
         //allocs memory for data and load the current line
         data = (char **) realloc(data, (index + 1) * sizeof(*data));
+        if ( data == NULL){
+            free(line);
+            fclose(fp);
+            fprintf(stderr,"error allocating memory");
+            return false;
+        }
         data[index] = (char *)malloc(sizeof(char)*  strlen(line)+1);
+        if ( data == NULL){
+            free(line);
+            fclose(fp);
+            fprintf(stderr,"error allocating memory");
+            return false;
+        }
         strcpy(data[index], line);
         index++;
         counter++;
@@ -1111,6 +1285,7 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
             fprintf(stderr,"too many lines!");
             fclose(fp);
             free(line);
+            if(universum.universum != NULL)free(universum.universum);
             for(int j = 0; j <counter+1;j++){
                 free(data[j]);
             }
@@ -1149,9 +1324,13 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                     fprintf(stderr,"wrong order");
                     error = true;
                     break;}
-                if(!is_universum){error = true;break;}
+                if(!is_universum){
+                    error = true;
+                    break;}
                 if(!check_rel_with_uni(line,universum)){ error = true;break;}//checks if elements are in universum
-                if (!check_relation(line)){error = true; break;}
+                if (!check_relation(line)){
+                    error = true;
+                    break;}
                 is_RS = true;
                 break;
             case 'C':
@@ -1159,7 +1338,9 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                     error = true;
                     break;
                 }
-                if(!is_universum){error = true;break;}
+                if(!is_universum){
+                    error = true;
+                    break;}
                 if (!is_operation){
                     first_operation_index=counter;
                     is_operation = true;
@@ -1171,6 +1352,13 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
                 break;
             default:
                 fprintf(stderr,"wrong identifier");
+                free(universum.universum);
+                fclose(fp);
+                free(line);
+                for(int j = 0; j <counter+1;j++){
+                    free(data[j]);
+                }
+                free(data);
                 return false;
         }
     }
@@ -1184,9 +1372,11 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
     if(universum.universum != NULL)free(universum.universum);
     fclose(fp);
     free(line);
+
     for(int j = 0; j <counter+1;j++){
         free(data[j]);
     }
+
     free(data);
     if(!is_RS && !error){
         fprintf(stderr,"no Set or Relation");
@@ -1205,8 +1395,8 @@ int main(int argc, char **argv) {
         fprintf(stderr,"wrong argument");
         return 2;
     }
-    FILE *fp;
-    Universum universum;
+    FILE *fp = NULL;
+    Universum universum = {NULL};
     if(!check_document(fp,argv,universum)) return 2;
     return 0;
 }
