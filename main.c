@@ -18,7 +18,7 @@ typedef struct {
     int third;
 }Args;
 
-//parses words into 2d struct, use with struct that stores the number of words, having 2d array is pain in struct...
+//parses words into 2d ar
 char **parse_words(char *string,Word_count *w){
     char *help_string = malloc(strlen(string)+1);
     strcpy(help_string,string);
@@ -245,15 +245,19 @@ bool check_rel_with_uni(char *line,Universum universum){
     free(help_string);
     return true;
 }
-
-bool card(char **data,Args arguments){
+/***
+ *
+ * @param data array of strings with all stored lines
+ * @param arguments for the operation
+ * prints the number of words in relation
+ */
+void card(char **data,Args arguments){
     Word_count w;
     char **words = parse_words(data[arguments.first], &w);
     printf("%d", w.count);
     free_words(words,w);
-    return true;
 }
-
+// prints true if array is empty
 bool empty(char **data, Args arguments){
     const char delim[4] = " \n";
     char * string = malloc(sizeof (char)* strlen(data[arguments.first])+1);
@@ -267,12 +271,14 @@ bool empty(char **data, Args arguments){
     free(string);
     return true;
 }
+
 bool complement(char **data, Args arguments) {
-    //prints words that are not in universum
     Word_count w;
+    //parses elements of universum into an array of string
     char **universum = parse_words(data[1], &w);
     printf("S ");
     for(int i = 0; i <w.count;i++){
+        //prints elements of universum that are not in set
         if(strstr(data[arguments.first],universum[i])== NULL)printf("%s ", universum[i]);
     }
     free_words(universum,w);
@@ -281,16 +287,19 @@ bool complement(char **data, Args arguments) {
 
 bool union_f(char **data, Args arguments){
     Word_count first_w; //to store how many words sets have
+    //parses elements of first set into an array of string
     char **first_words= NULL;
     first_words = parse_words(data[arguments.first],&first_w);
     Word_count sec_w;
     char **second_words = NULL;
     printf("S ");
     for (int i = 0;i <first_w.count;i++){
+        // prints if element of 1st set  is not in second
         if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
     }
     second_words = parse_words(data[arguments.second],&sec_w);
     for (int i = 0; i < sec_w.count; i++) {
+        // prints the second set
         printf("%s ", second_words[i]);
     }
     free_words(first_words,first_w);
@@ -303,25 +312,28 @@ bool intersect(char ** data, Args arguments){
     first_words = parse_words(data[arguments.first],&first_w);
     printf("S ");
     for (int i = 0;i < first_w.count;i++){
+        //prints if elements is in both sets
         if(strstr(data[arguments.second], first_words[i]) != NULL) printf("%s ", first_words[i]);
     }
     free_words(first_words,first_w);
     return true;
 }
 bool minus(char **data, Args arguments){
-    Word_count first_w; //to store how many words sets have
+    Word_count first_w;
     char **first_words= NULL;
     first_words = parse_words(data[arguments.first],&first_w);
     printf("S ");
     for (int i = 0; i < first_w.count;i++){
+        //prints the element if it is not in the second set
         if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
     }
     free_words(first_words,first_w);
     return true;
 }
 bool subseteq(char **data, Args arguments){
-    Word_count first_w; //to store how many words sets have
+    Word_count first_w;
     char **first_words= NULL;
+    //prints true if sets are identical
     if (!strcmp(data[arguments.first],data[arguments.second])){
         printf("true");
         return true;
@@ -329,9 +341,11 @@ bool subseteq(char **data, Args arguments){
     first_words = parse_words(data[arguments.first],&first_w);
     int counter = 0;
     for(int i = 0;i < first_w.count;i++){
+        //increments counter  if element is present in second set
         if(strstr(data[arguments.second], first_words[i]) != NULL)counter++;
     }
     free_words(first_words,first_w);
+    //prints true if all elements of 1st set are present in 2nd
     if(counter == first_w.count)printf("true");
     else printf("false");
     return true;
@@ -343,30 +357,29 @@ bool subset(char **data, Args arguments){
     first_words = parse_words(data[arguments.first],&first_w);
     bool elements = true;
     for (int i = 0; i < first_w.count;i++){
+        //increments counter  if element is present in second set
         if (strstr(data[arguments.second], first_words[i]) != NULL)counter++;
         else elements = false;
     }
     char **sec_words= NULL;
     Word_count  sec_w;
     sec_words = parse_words(data[arguments.second],&sec_w);
-    /*if (first_w.count){
-        for (int i = 0; i < sec_w.count;i++){
-            if (strstr(data[arguments.first], sec_words[i]) != NULL)elements = false;
-        }
-    }*/
     free_words(first_words,first_w);
     free_words(sec_words,sec_w);
+    //false if some element of 1st set is not in 2nd
     if (!elements)printf("false");
+        //prints true if either there are more elements of 2nd set than 1st or first set is empty and second is not
     else if((counter < sec_w.count && counter != 0) || (first_words == 0 && sec_words != 0))printf("true");
     else printf("false");
     return true;
 }
 bool equals(char **data, Args arguments){
-    Word_count first_w; //to store how many words sets have
+    Word_count first_w;
     char **first_words= NULL;
     first_words = parse_words(data[arguments.first],&first_w);
     int counter = 0;
     for(int i = 0; i < first_w.count;i++){
+        //increments counter  if element is present in second set
         if(strstr(data[arguments.second], first_words[i]) != NULL) {
             counter++;
         }
@@ -376,8 +389,11 @@ bool equals(char **data, Args arguments){
     sec_words = parse_words(data[arguments.second],&sec_w);
     free_words(first_words,first_w);
     free_words(sec_words,sec_w);
+    //prints true if both sets are empty
     if (!first_w.count && !sec_w.count)printf("true");
+        //prints false if only one set is empty
     else if(!first_w.count || !sec_w.count)printf("false");
+        // prints true if all elements are in both sets
     else if(counter == sec_w.count)printf("true");
     else printf("false");
     return true;
