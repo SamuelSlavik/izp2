@@ -1,3 +1,9 @@
+/**
+ * IZP 2. projekt
+ * This project was created by: xspace39, xvalko13, xslavi37, xpetra30
+ * last date of change: 12/5/2021 23:02
+ */
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
