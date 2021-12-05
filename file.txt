@@ -6,7 +6,7 @@ S Apple Lemon Peach Coconut
 S Peach Lemon Apple Banana
 R (Lemon Apple) (Banana Apple)
 R (Lemon Lemon) (Apple Peach)
-R (Lemon Apple) (Banana Peach)
+R (Lemon Apple) (Lemon Peach) 
 S
 C subseteq 10 10
 C reflexive 8
@@ -22,4 +22,7 @@ C subseteq 5 2
 C subset 3 5
 C equals 5 6
 C symmetric 7
-C surjective 7 2 3
+C transitive 8
+C antisymmetric 8
+C domain 8
+C bijective 8 7
