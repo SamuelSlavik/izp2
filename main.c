@@ -399,8 +399,7 @@ bool equals(char **data, Args arguments){
     return true;
 }
 // OPERATIONS ON RELATIONS
-bool findInArray(char **words, int size, char **array, int counter){
-
+bool findInArray(char **words, int size, char **array, int counter){    //function checks if a word is found in an array and returns a value true or false 
     for (int index =0; index < size; index++)
     {
         if(strstr(array[index], words[counter]))
@@ -410,26 +409,26 @@ bool findInArray(char **words, int size, char **array, int counter){
     }
     return true;
 }
-void reflexive(char **data, Args arguments){
-    Word_count count;
+void reflexive(char **data, Args arguments){    //function gets a line from from file and arguments
+    Word_count count;           //count of words
     Word_count u;
-    char **universum= NULL;
-    universum = parse_relation(data[1], &u);
+    char **universum= NULL;     //initialization of array
+    universum = parse_relation(data[1], &u);    //initialization of parsed universum
     char **words= NULL;
-    words = parse_relation(data[arguments.first], &count);
-    if (count.count == 0 && u.count == 0){
+    words = parse_relation(data[arguments.first], &count);  //initialization of parsed words
+    if (count.count == 0 && u.count == 0){      //if count of universum words and count of words in a relation is zero print true
         free_words(words,count);
         printf("true");
         return;
     }
-    if (count.count == 0){
+    if (count.count == 0){      //if count of words in relation is zero print false
         free_words(words,count);
         free_words(universum,u);
         printf("false");
         return;
     }
     bool reflexive_element = false;
-    for( int i = 0; i < u.count;i++){
+    for( int i = 0; i < u.count;i++){       //checks if relations are reflexive
         for(int j = 0; j < count.count;j+=2){
             if ( (strcmp(universum[i],words[j])==0) && (strcmp(universum[i],words[j+1])==0) ){
                 reflexive_element = true;
@@ -437,7 +436,7 @@ void reflexive(char **data, Args arguments){
             }
 
         }
-        if(!reflexive_element){
+        if(!reflexive_element){     //if relations are not reflexive print false, else print true
             free_words(words,count);
             free_words(universum,u);
             printf("false");
@@ -451,10 +450,10 @@ void reflexive(char **data, Args arguments){
     free_words(words,count);
     printf("true");
 }
-void symmetric(char **data, Args arguments){
-    Word_count count;
-    char **words= NULL;
-    words = parse_relation(data[arguments.first], &count);
+void symmetric(char **data, Args arguments){       //function gets a line from from file and arguments
+    Word_count count;               //count of words
+    char **words= NULL;             //initialization of array
+    words = parse_relation(data[arguments.first], &count);      //initialization of parsed words
     char **array = NULL;
     int array_size = 0;
     char **array2 = NULL;
@@ -465,12 +464,12 @@ void symmetric(char **data, Args arguments){
     int symmetric_relations = 0;
     int relations_counter = 0;
 
-    for (int i = 0; i < count.count; i++) {
-        array = (char **) realloc(array, (index + 1) * sizeof(*array));
+    for (int i = 0; i < count.count; i++) {     //loop which gets the parsed words 1 by one
+        array = (char **) realloc(array, (index + 1) * sizeof(*array)); //reallocation of arrays
         array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));
 
-        if (i % 2 == 0) {
-            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+        if (i % 2 == 0) {       //division of index to get the correct values from the parsed words
+            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);  //space allocation for the words
             strcpy(array[index], words[i]);
             array_size++;
 
@@ -482,18 +481,18 @@ void symmetric(char **data, Args arguments){
         }
     }
 
-    for (int i = 0; i < count.count; i++) {
-        array3 = (char **) realloc(array3, (index2 + 1) * sizeof(*array3));
+    for (int i = 0; i < count.count; i++) {     //loop which gets the parsed words 1 by one
+        array3 = (char **) realloc(array3, (index2 + 1) * sizeof(*array3));     //reallocation of arrays
         array4 = (char **) realloc(array4, (index2 + 1) * sizeof(*array4));
 
-        if (i % 2 == 0) {
-            array3[index2] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+        if (i % 2 == 0) {       //division of index to get the correct values from the parsed words
+            array3[index2] = (char *) malloc(sizeof(char) * strlen(words[i])+1);    //space allocation for the words
             strcpy(array3[index2], words[i + 1]);
 
             array4[index2] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
             strcpy(array4[index2], words[i]);
 
-            for (int j = 0; j < array_size; j++) {
+            for (int j = 0; j < array_size; j++) {      //counting symmetric relations
                 if ((strstr(array[j], array3[index2])) && (strstr(array2[j], array4[index2]))) {
                     symmetric_relations++;
                 }
@@ -503,12 +502,12 @@ void symmetric(char **data, Args arguments){
     }
 
 
-    if (symmetric_relations == relations_counter) {
+    if (symmetric_relations == relations_counter) {     //comparing number of symmetric relations to the total number of sym rel
         printf("true");
     } else {
         printf("false");
     }
-    int i = 0;
+    int i = 0;          //freeing the allocated space
     while(i != index){
         free(array[i]);
         free(array2[i]);
@@ -528,14 +527,12 @@ void symmetric(char **data, Args arguments){
     free(array4);
     free_words(words, count);
 }
-void antisymmetric(char **data, Args arguments){
-    Word_count count;
-    char **words= NULL;
-    words = parse_relation(data[arguments.first], &count);
+void antisymmetric(char **data, Args arguments){    //function gets a line from from file and arguments
+    Word_count count;                   //count of words
+    char **words= NULL;                 //initialization of array
+    words = parse_relation(data[arguments.first], &count);  //initialization of parsed words
 
-
-
-    char **array = NULL;
+    char **array = NULL;    //initialization of array
     int array_size = 0;
     char **array2 = NULL;
     char **array3 = NULL;
@@ -544,12 +541,12 @@ void antisymmetric(char **data, Args arguments){
     int index2 = 0;
     int relations_counter = 0;
 
-    for (int i = 0; i < count.count; i++) {
-        array = (char **) realloc(array, (index + 1) * sizeof(*array));
-        array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));
+    for (int i = 0; i < count.count; i++) {     //loop which gets the parsed words 1 by one
+        array = (char **) realloc(array, (index + 1) * sizeof(*array)); //reallocation of array
+        array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));  //reallocation of array2
 
-        if (i % 2 == 0) {
-            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+        if (i % 2 == 0) {   //division of index to get the correct values from the parsed words
+            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);  //space allocation for the words
             strcpy(array[index], words[i]);
             array_size++;
 
@@ -561,22 +558,22 @@ void antisymmetric(char **data, Args arguments){
         }
     }
 
-    for (int i = 0; i < count.count; i++) {
-        array3 = (char **) realloc(array3, (index2 + 1) * sizeof(*array3));
-        array4 = (char **) realloc(array4, (index2 + 1) * sizeof(*array4));
+    for (int i = 0; i < count.count; i++) {     //loop which gets the parsed words 1 by one
+        array3 = (char **) realloc(array3, (index2 + 1) * sizeof(*array3)); //reallocation of array3
+        array4 = (char **) realloc(array4, (index2 + 1) * sizeof(*array4)); //reallocation of array4
 
-        if (i % 2 == 0) {
-            array3[index2] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
+        if (i % 2 == 0) {   //division of index to get the correct values from the parsed words
+            array3[index2] = (char *) malloc(sizeof(char) * strlen(words[i])+1);    //space allocation for the words
             strcpy(array3[index2], words[i + 1]);
 
             array4[index2] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
             strcpy(array4[index2], words[i]);
 
-            for (int j = 0; j < array_size; j++) {
+            for (int j = 0; j < array_size; j++) {  //looking for dispute, if found, print false
                 if ((strstr(array[j], array3[index2])) && (strstr(array2[j], array4[index2])) && !(strstr(array3[index2], array4[index2]))) {
                     printf("false");
                     int k = 0;
-                    while(k != index){
+                    while(k != index){      //freeing the allocated space
                         free(array[k]);
                         free(array2[k]);
                         k++;
@@ -601,7 +598,7 @@ void antisymmetric(char **data, Args arguments){
     }
     printf("true");
     int i = 0;
-    while(i != index){
+    while(i != index){      //freeing the allocated space
         free(array[i]);
         free(array2[i]);
         i++;
@@ -619,50 +616,50 @@ void antisymmetric(char **data, Args arguments){
     free(array4);
     free_words(words, count);
 }
-void transitive(char **data, Args arguments){
-    Word_count count;
-    char **words= NULL;
-    words = parse_relation(data[arguments.first], &count);
+void transitive(char **data, Args arguments){       //function gets a line from from file and arguments
+    Word_count count;                               //count of words
+    char **words= NULL;                             //initialization of array
+    words = parse_relation(data[arguments.first], &count);      //initialization of parsed words
 
-    char **array = NULL;
+    char **array = NULL;                        //initialization of array
     int array_size = 0;
     char **array2 = NULL;
     int index = 0;
     int relations_counter = 0;
     int is_transitive = 0;
 
-    for (int i = 0; i < count.count; i++) {
-        array = (char **) realloc(array, (index + 1) * sizeof(*array));
-        array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));
+    for (int i = 0; i < count.count; i++) {         //loop which gets the parsed words 1 by one
+        array = (char **) realloc(array, (index + 1) * sizeof(*array));     //reallocation of array
+        array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));  //reallocation of array2
 
-        if (i % 2 == 0) {
-            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
-            strcpy(array[index], words[i]);
-            array_size++;
+        if (i % 2 == 0) {           //division of index to get the correct values from the parsed words
+            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);  //space allocation for the words
+            strcpy(array[index], words[i]); //copies word to array
+            array_size++;                   //incrementation array size
 
-            array2[index] = (char *) malloc(sizeof(char) * strlen(words[i + 1])+1);
-            strcpy(array2[index], words[i + 1]);
+            array2[index] = (char *) malloc(sizeof(char) * strlen(words[i + 1])+1); //space allocation for the words
+            strcpy(array2[index], words[i + 1]);        //copies the second word from relation to array
 
             relations_counter++;
             index++;
         }
     }
 
-    for (int i = 0; i < array_size; i++) {
-        for (int j = 0; j < array_size; j++) {
+    for (int i = 0; i < array_size; i++) {      //gets 1st word from array
+        for (int j = 0; j < array_size; j++) {  
             if (!strcmp(array2[i], array[j])) {
                 is_transitive = 0;
                 for (int k = 0; k < array_size; k++) {
-                    int x = strcmp(array[i], array[k]);
-                    int y = strcmp(array2[j], array2[k]);
+                    int x = strcmp(array[i], array[k]);     //compares words
+                    int y = strcmp(array2[j], array2[k]);   
 
-                    if ((!x) && (!y)) {
+                    if ((!x) && (!y)) {             //if the compares does not match set is_transitive to 1
                         is_transitive = 1;
                     }
-                    if ((k == array_size-1) && (is_transitive == 0)) {
+                    if ((k == array_size-1) && (is_transitive == 0)) {  //looking for dispute, if found, return false  
                         printf("false");
                         int l = 0;
-                        while(l != index){
+                        while(l != index){      //freeing the allocated space
                             free(array[l]);
                             free(array2[l]);
                             l++;
@@ -677,9 +674,9 @@ void transitive(char **data, Args arguments){
         }
     }
 
-    printf("true");
+    printf("true");     //in other case print true
 
-    int i = 0;
+    int i = 0;          //freeing the allocated space
     while(i != index){
         free(array[i]);
         free(array2[i]);
@@ -691,35 +688,30 @@ void transitive(char **data, Args arguments){
 }
 
 
-void function(char **data, Args arguments){
-    Word_count count;
-    char **words= NULL;
-    words = parse_relation(data[arguments.first], &count);
-    char **array = NULL;
+void function(char **data, Args arguments){    //function gets a line from from file and arguments
+    Word_count count;                           //count of words
+    char **words= NULL;                         //initialization of array
+    words = parse_relation(data[arguments.first], &count);  //initialization of parsed words
+    char **array = NULL;                        //initialization of array
     int index = 0;
-    int help = 0;
-    for (int i = 0; i < count.count; i++)
+    for (int i = 0; i < count.count; i++)       //loop which gets the parsed words 1 by one
     {
-        array = (char **) realloc(array, ( index + 1) * sizeof(*array));
-        //array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
-
-        if (i%2 == 0)
+        array = (char **) realloc(array, ( index + 1) * sizeof(*array));        //reallocation of array
+        if (i%2 == 0)                           //division of index to get the correct values from the parsed words
         {
 
-            while(findInArray(words, index, array, i) != false){
-
-                help++;
-                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
-                strcpy(array[index], words[i]);
-                index++;
+            while(findInArray(words, index, array, i) != false){    //function checks if the word is found in the array an returns a bool value
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);   //space allocation for the words
+                strcpy(array[index], words[i]);                     //copies word to array
+                index++;                                            //incrementation of the index
             }
         }
     }
 
-    if(index != count.count/2){printf("false");}
-    else{printf("true");}
+    if(index != count.count/2){printf("false");}  //if every word was unique and the size of index equals the amount of words prints true
+    else{printf("true");}                           //, otherwise prints false
 
-    int i = 0;
+    int i = 0;                 //freeing the allocated space 
     while(i != index){
         free(array[i]);
         i++;
@@ -731,34 +723,33 @@ void function(char **data, Args arguments){
 }
 
 
-void domain(char **data, Args arguments){
-    Word_count count;
-    char **words= NULL;
-    words = parse_relation(data[arguments.first], &count);
+void domain(char **data, Args arguments){   //function gets a line from from file and arguments
+    Word_count count;                       //count of words
+    char **words= NULL;                     //initialization of array
+    words = parse_relation(data[arguments.first], &count); //initialization of parsed words
 
-    char **array = NULL;
+    char **array = NULL;                    //initialization of array
     int index = 0;
 
     printf("S ");
-    for (int i = 0; i < count.count; i++)
+    for (int i = 0; i < count.count; i++)       //loop which gets the parsed words 1 by one
     {
-        array = (char **) realloc(array, ( index + 1) * sizeof(*array));
-        //array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
+        array = (char **) realloc(array, ( index + 1) * sizeof(*array));    //reallocation of array
 
-        if (i%2 == 0)
+        if (i%2 == 0)               //division of index to get the correct values from the parsed words
         {
-            if(findInArray(words, index, array, i) == true){
+            if(findInArray(words, index, array, i) == true){       //function checks if the word is found in the array an returns a bool value
 
-                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
-                strcpy(array[index], words[i]);
-                printf("%s ", array[index]);
-                index++;
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);   //space allocation for the words
+                strcpy(array[index], words[i]);         //copies word to array
+                printf("%s ", array[index]);            //print the correct values
+                index++;                            //incrementation of the index
             }
         }
     }
 
 
-    int i = 0;
+    int i = 0;              //freeing the allocated space 
     while(i != index){
         free(array[i]);
         i++;
@@ -767,33 +758,30 @@ void domain(char **data, Args arguments){
     free_words(words, count);
 }
 
+void codomain(char **data, Args arguments){     //function gets a line from from file and arguments
+    Word_count count;                           //count of words
+    char **words= NULL;                         //initialization of array
+    words = parse_relation(data[arguments.first], &count);      //initialization of parsed words
 
-// fix printing, it prints R Apple instead of Apple
-void codomain(char **data, Args arguments){
-    Word_count count;
-    char **words= NULL;
-    words = parse_relation(data[arguments.first], &count);
-
-    char **array = NULL;
+    char **array = NULL;                        //initialization of array
     int index = 0;
 
     printf("S ");
-    for (int i = 0; i < count.count; i++)
+    for (int i = 0; i < count.count; i++)       //loop which gets the parsed words 1 by one
     {
-        array = (char **) realloc(array, ( index +1) * sizeof(*array));
-        //array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
+        array = (char **) realloc(array, ( index +1) * sizeof(*array));     //reallocation of array
 
-        if (i%2 != 0)
+        if (i%2 != 0)                           //division of index to get the correct values from the parsed words
         {
-            if(findInArray(words, index, array, i) == true){
-                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
-                strcpy(array[index], words[i]);
-                printf("%s ", array[index]);
-                index++;
+            if(findInArray(words, index, array, i) == true){    //function checks if the word is found in the array an returns a bool value
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);   //space allocation for the words
+                strcpy(array[index], words[i]);                 //copies word to array
+                printf("%s ", array[index]);                    //print the correct values
+                index++;                                //incrementation of the index
             }
         }
     }
-    int i = 0;
+    int i = 0;              //freeing the allocated space
     while(i != index){
         free(array[i]);
         i++;
@@ -802,27 +790,27 @@ void codomain(char **data, Args arguments){
     free_words(words, count);
 }
 
-void injective(char **data, Args arguments){
-    if(!duplicit(data[arguments.first])){
+void injective(char **data, Args arguments){    //function gets a line from from file and arguments
+    if(!duplicit(data[arguments.first])){      //print false if any duplicate relations are present 
         printf("false");
         return;
     }
-    Word_count count;
-    char **words= NULL;
-    words = parse_relation(data[arguments.first], &count);
-    Word_count sec_w;
+    Word_count count;       //count of words
+    char **words= NULL;     //initialization of array
+    words = parse_relation(data[arguments.first], &count);  //initialization of parsed words
+    Word_count sec_w;       //count of all second words
     char **sec_words= NULL;
-    sec_words = parse_relation(data[arguments.second], &sec_w);
+    sec_words = parse_relation(data[arguments.second], &sec_w); //initialization of parsed words
 
-    Word_count third_w;
+    Word_count third_w;     //count of all third words
     char **third_words= NULL;
-    third_words = parse_relation(data[arguments.third], &third_w);
+    third_words = parse_relation(data[arguments.third], &third_w);  //initialization of parsed words
 
     int x_counter = 0;
     int y_counter = 0;
-    for(int index = 0; index <count.count;index++){
-        if(index%2 == 0){
-            for(int i = 0; i < sec_w.count;i++){
+    for(int index = 0; index <count.count;index++){ 
+        if(index%2 == 0){   //division of index to get the correct values from the parsed words
+            for(int i = 0; i < sec_w.count;i++){        //compares if every word in first set is in relation
                 if(strcmp(words[index],sec_words[i]) == 0){
                     x_counter++;
                     break;
@@ -830,7 +818,7 @@ void injective(char **data, Args arguments){
             }
         }
         else {
-            for(int i = 0; i < third_w.count;i++){
+            for(int i = 0; i < third_w.count;i++){  //compares if every word in second set is in relation
                 if(strcmp(words[index],third_words[i]) == 0){
                     y_counter++;
                     break;
@@ -838,40 +826,40 @@ void injective(char **data, Args arguments){
             }
         }
     }
-    if (count.count == 0 && sec_w.count == 0 && third_w.count == 0){
+    if (count.count == 0 && sec_w.count == 0 && third_w.count == 0){ //if relation and both sets are empty prints true
         printf("true");
     }
-    else if (count.count != 0 && sec_w.count == 0 && third_w.count == 0){
+    else if (count.count != 0 && sec_w.count == 0 && third_w.count == 0){   //if relation is not empty but both sets are empty print false
+        printf("false");
+    }   
+    else if ( count.count == 0){        //if only relation is empty print false
         printf("false");
     }
-    else if ( count.count == 0){
-        printf("false");
-    }
-    else if(x_counter == sec_w.count && x_counter == y_counter){
+    else if(x_counter == sec_w.count && x_counter == y_counter){    //if all x elements iare in first set and all y elements are in the second set print true
         printf("true");
     }
     else printf("false");
-    free_words(words,count);
+    free_words(words,count);        //freeing the allocated space
     free_words(sec_words,sec_w);
     free_words(third_words,third_w);
 }
-void surjetive(char **data, Args arguments){
-    Word_count count;
-    char **words= NULL;
-    words = parse_relation(data[arguments.first], &count);
-    Word_count sec_w;
+void surjetive(char **data, Args arguments){    //function gets a line from from file and arguments
+    Word_count count;   //count of words
+    char **words= NULL; //initialization of array
+    words = parse_relation(data[arguments.first], &count);  //initialization of parsed words
+    Word_count sec_w;   //count of all 2nd words
     char **sec_words= NULL;
     sec_words = parse_relation(data[arguments.second], &sec_w);
 
-    Word_count third_w;
+    Word_count third_w; //count of all 3rd words
     char **third_words= NULL;
     third_words = parse_relation(data[arguments.third], &third_w);
 
     int x_counter = 0;
     int y_counter = 0;
     for(int index = 0; index <count.count;index++){
-        if(index%2 == 0){
-            for(int i = 0; i < sec_w.count;i++){
+        if(index%2 == 0){   //division of index to get the correct values from the parsed words
+            for(int i = 0; i < sec_w.count;i++){    //compares if every word in first set is in relation
                 if(strcmp(words[index],sec_words[i]) == 0){
                     x_counter++;
                     break;
@@ -879,7 +867,7 @@ void surjetive(char **data, Args arguments){
             }
         }
         else {
-            for(int i = 0; i < third_w.count;i++){
+            for(int i = 0; i < third_w.count;i++){  //compares if every word in second set is in relation
                 if(strcmp(words[index],third_words[i]) == 0){
                     y_counter++;
                     break;
@@ -887,7 +875,7 @@ void surjetive(char **data, Args arguments){
             }
         }
     }
-    for(int i = 0; i <count.count;i+=2){
+    for(int i = 0; i <count.count;i+=2){    //checks if elements in a relation are identical
         for(int j = i+1;j<count.count;j+=2){
             if(!strcmp(words[i],words[j])){
                 printf("false");
@@ -899,7 +887,7 @@ void surjetive(char **data, Args arguments){
         }
     }
     bool found = false;
-    for(int i = 0; i <third_w.count;i++){
+    for(int i = 0; i <third_w.count;i++){   //checks if all elements of second set are present in y coordinates
         found = false;
         for(int j = 1;j<count.count;j+=2){
             if(strcmp(third_words[i],words[j]) == 0){
@@ -907,53 +895,53 @@ void surjetive(char **data, Args arguments){
                 break;
             }
         }
-        if (!found){
+        if (!found){        //if found print true
             printf("false");
-            free_words(words,count);
+            free_words(words,count);    //freeing the allocated space
             free_words(sec_words,sec_w);
             free_words(third_words,third_w);
             return;
         }
     }
 
-    if (count.count == 0 && sec_w.count == 0 && third_w.count == 0){
+    if (count.count == 0 && sec_w.count == 0 && third_w.count == 0){ //if relation and both sets are empty prints true
         printf("true");
     }
-    else if (count.count != 0 && sec_w.count == 0 && third_w.count == 0){
+    else if (count.count != 0 && sec_w.count == 0 && third_w.count == 0){   //if relation is not empty but both sets are empty print false
         printf("false");
     }
-    else if ( count.count == 0){
+    else if ( count.count == 0){    //if only relation is empty print false
         printf("false");
     }
-    else if(x_counter == sec_w.count && x_counter == y_counter){
+    else if(x_counter == sec_w.count && x_counter == y_counter){    //if all x elements iare in first set and all y elements are in the second set print true
         printf("true");
     }
     else printf("false");
-    free_words(words,count);
+    free_words(words,count);    //freeing the allocated space
     free_words(sec_words,sec_w);
     free_words(third_words,third_w);
 }
-void bijective(char **data, Args arguments){
-    if(!duplicit(data[arguments.first])){
+void bijective(char **data, Args arguments){    //function gets a line from from file and arguments
+    if(!duplicit(data[arguments.first])){       //print false if any duplicate relations are present
         printf("false");
         return;
     }
-    Word_count count;
+    Word_count count;   //count of words
     char **words= NULL;
-    words = parse_relation(data[arguments.first], &count);
-    Word_count sec_w;
+    words = parse_relation(data[arguments.first], &count);    //initialization of parsed words
+    Word_count sec_w;   //count of 2nd words
     char **sec_words= NULL;
-    sec_words = parse_relation(data[arguments.second], &sec_w);
+    sec_words = parse_relation(data[arguments.second], &sec_w); //initialization of parsed words
 
-    Word_count third_w;
+    Word_count third_w; //count of 3rd words
     char **third_words= NULL;
-    third_words = parse_relation(data[arguments.third], &third_w);
+    third_words = parse_relation(data[arguments.third], &third_w); //initialization of parsed words
 
     int x_counter = 0;
     int y_counter = 0;
     for(int index = 0; index <count.count;index++){
-        if(index%2 == 0){
-            for(int i = 0; i < sec_w.count;i++){
+        if(index%2 == 0){       //division of index to get the correct values from the parsed words
+            for(int i = 0; i < sec_w.count;i++){    //compares if every word in first set is in relation
                 if(strcmp(words[index],sec_words[i]) == 0){
                     x_counter++;
                     break;
@@ -961,7 +949,7 @@ void bijective(char **data, Args arguments){
             }
         }
         else {
-            for(int i = 0; i < third_w.count;i++){
+            for(int i = 0; i < third_w.count;i++){      //compares if every word in second set is in relation
                 if(strcmp(words[index],third_words[i]) == 0){
                     y_counter++;
                     break;
@@ -969,20 +957,20 @@ void bijective(char **data, Args arguments){
             }
         }
     }
-    if (count.count == 0 && sec_w.count == 0 && third_w.count == 0){
+    if (count.count == 0 && sec_w.count == 0 && third_w.count == 0){    //if relation and both sets are empty prints true
         printf("true");
     }
-    else if (count.count != 0 && sec_w.count == 0 && third_w.count == 0){
+    else if (count.count != 0 && sec_w.count == 0 && third_w.count == 0){   //if relation is not empty but both sets are empty print false
         printf("false");
     }
-    else if ( count.count == 0){
+    else if ( count.count == 0){    //if only relation is empty print false
         printf("false");
     }
-    else if(x_counter == sec_w.count && (y_counter == third_w.count) && x_counter == y_counter){
+    else if(x_counter == sec_w.count && (y_counter == third_w.count) && x_counter == y_counter){    //if all x elements are in first set and all y elements are in the second set print true , number of correct x element and y element are equal
         printf("true");
     }
     else printf("false");
-    free_words(words,count);
+    free_words(words,count);    //freeing the allocated space
     free_words(sec_words,sec_w);
     free_words(third_words,third_w);
 }
