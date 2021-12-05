@@ -18,21 +18,23 @@ typedef struct {
     int third;
 }Args;
 
-//parses words into 2d ar
+//parses words into 2d array
 char **parse_words(char *string,Word_count *w){
-    char *help_string = malloc(strlen(string)+1);
-    strcpy(help_string,string);
+    char *help_string = malloc(strlen(string)+1);//allocates memory for help string
+    strcpy(help_string,string); // copies the passed string into help string
+    // help string is necessary, because strtok would change the string, and we need the string unchanged therefore we use the help string instead
     char **data = NULL;
     const char delim[2] = " \n";
     char *token;
-    int counter = 0;
-    token = strtok(help_string, delim);
+    int counter = 0; // counts the number of words created by strtok
+    // strtok parses the string, searches for delim, when it finds it, it store the string between either start, or previous delim in token
+    token = strtok(help_string, delim); // starts at the beginning
     while( token != NULL ) {
-        token = strtok(NULL, delim);
+        token = strtok(NULL, delim);//starts at the current delim , also skipsthe first word, which is either U or S
         if (token == NULL) break;
-        data = (char **) realloc(data, (counter + 1) * sizeof(data));
-        data[counter] = (char *)malloc(sizeof(char)*  strlen(token)+1);
-        strcpy(data[counter], token);
+        data = (char **) realloc(data, (counter + 1) * sizeof(data)); // allocs the number of columns of 2d array
+        data[counter] = (char *)malloc(sizeof(char)*  strlen(token)+1); // allocs the current row
+        strcpy(data[counter], token); // copies the token to current row
         counter++;
     }
     w->count = counter;
@@ -40,12 +42,12 @@ char **parse_words(char *string,Word_count *w){
     if (data == NULL) return 0;
     return data;
 }
-// similar to parse_words, but has different delim and delim has to be const( will not work otherwise ) so it can't be dealt with by mergin fucntions and simple (if set)delim =  else delim=
+// similar to parse_words, but has different delim and delim has to be const( will not work otherwise )
 char **parse_relation(char *string,Word_count *w){
     char *help_string = malloc(sizeof (char) * strlen(string)+1);
     strcpy(help_string,string);
     char **data = NULL;
-    const char delim[4] = " ()\n";
+    const char delim[4] = " ()\n"; //() are specific for relations
     char *token;
     int counter = 0;
     token = strtok(help_string, delim);
@@ -67,22 +69,21 @@ char **parse_relation(char *string,Word_count *w){
 bool check_relation(char *string){
     char *help_string = malloc(sizeof (char) * strlen(string)+1);
     strcpy(help_string,string);
-    //char **data = NULL;
     const char delim[4] = " \n";
     char *token;
     int counter = 0;
     token = strtok(help_string, delim);
     while( token != NULL ) {
-        token = strtok(NULL, delim);
+        token = strtok(NULL, delim); // skips the first word R
         if (token == NULL) break;
         if (counter%2 == 0){
-            if (token[0] != '('){
+            if (token[0] != '('){ // if even words do not have ( that means brackets do not match
                 free(help_string);
                 return false;
             }
         }
         if (counter%2 == 1){
-            if(token[strlen(token)-1] != ')'){
+            if(token[strlen(token)-1] != ')'){ //if odd words do not have ), it means brackets do not match
                 free(help_string);
                 return false;
             }
@@ -98,7 +99,7 @@ bool check_relation(char *string){
 bool is_number(char * str){
     int len = (int) strlen(str);
     for(int i =0 ; i< len;i++){
-        if(!(str[i]>='0' && str[i] <= '9') && (str[i] != '\n')){
+        if(!(str[i]>='0' && str[i] <= '9') && (str[i] != '\n')){ // if char is not a number or \n, returns false
             return false;
         }
     }
@@ -115,13 +116,13 @@ bool find_args(char *string,Args *arguments){
     char *ptr;
     token = strtok(help_str, delim);
     while (token != NULL) {
-        if (counter == 2){
+        if (counter == 2){  //the second word is the first argument
             arguments->first = (int)strtol(token,&ptr,10);
         }
-        if (counter == 3){
+        if (counter == 3){ // the third word is the second argument
             arguments->second = (int)strtol(token,&ptr,10);
         }
-        if (counter == 4){
+        if (counter == 4){// the fourth word is the second argument
             arguments->third  = (int)strtol(token,&ptr,10);
         }
         token = strtok(NULL, delim);
@@ -132,10 +133,10 @@ bool find_args(char *string,Args *arguments){
 }
 
 void free_words(char **data,Word_count w){
-    for(int i = 0; i <w.count;i++){
+    for(int i = 0; i <w.count;i++){ // frees all the rows
         free(data[i]);
     }
-    free(data);
+    free(data);// frees the whole array
 }
 
 bool duplicit(char *string){
@@ -147,7 +148,7 @@ bool duplicit(char *string){
     char *token;
     int counter = 0;
     token = strtok(help_string, delim);
-    if (strlen(token) != 1){
+    if (strlen(token) != 1){ // checks if the first word is only one letter to prevent cases like Ur
         fprintf(stderr,"wrong identifier");
         free(help_string);
         return false;
@@ -155,7 +156,7 @@ bool duplicit(char *string){
     while( token != NULL ) {
         token = strtok(NULL, delim);
         if (token == NULL) break;
-        if(strlen(token) > 30){
+        if(strlen(token) > 30){//checks if the words if longer than 30 character (limit)
             w.count = counter;
             if (data != NULL){
                 free_words(data,w);
@@ -170,12 +171,12 @@ bool duplicit(char *string){
         counter++;
     }
     w.count = counter;
-    if (data == NULL){
+    if (data == NULL){ // if no data were stored, return true because there are no duplicit in empty array
         free(help_string);
         free_words(data,w);
         return true;
     }
-    for(int i = 0; i <counter;i++){
+    for(int i = 0; i <counter;i++){     //checks all words with each other, if were are duplicates, returns false
         for(int j = i+1;j<counter;j++){
             if(!strcmp(data[i],data[j])){
                 free(help_string);
@@ -190,33 +191,32 @@ bool duplicit(char *string){
 }
 
 bool check_line(char *line){
-    size_t len = strlen(line);
+    size_t len = strlen(line); // finds the length of passed line
     for (size_t i = 0; i < len; i++) {
-        //10 je \n 32 space
-        if(line[i] > 'z') return false;
-        else if(line[i] < 10)return false;
-        else if(line[i] > 'Z' && line[i] < 'a')return false;
+        if(line[i] > 'z') return false; // if ascii value is greater than value of z returns false
+        else if(line[i] < 10)return false;// if ascii value is smaller than 10 returns false
+        else if(line[i] > 'Z' && line[i] < 'a')return false; // basically just checks it line consists only of lower&uppercase letters , numbers, spaces and \n
         else if( line[i] > 32 && line[i] < 'A')return false;
         else if(line[i] > 10 && line[i] < 32)return false;
         else if(line[i] >= '0' && line[i]<='9')return false;
     }
-    if (strstr(line, "true")|| strstr(line, "false")) return false;
+    if (strstr(line, "true")|| strstr(line, "false")) return false; // checks for the presence of words true and false
     return true;
 }
 bool check_words(char *line){
-    if(!check_line(line)){
+    if(!check_line(line)){ // calls a function that checks for invalid characters
         fprintf(stderr,"Wrong format");
         return false;
     }
-    if(!duplicit(line))return false;
+    if(!duplicit(line))return false; // calls a function that checks for duplicate words
     return true;
 }
-
+// checks if all elements of line  are in universum
 bool check_set_with_uni(char *line,Universum universum){
     Word_count w;
     char **set_words = parse_words(line,&w);
-    for (int i = 0; i < w.count;i++){
-        if((strstr(universum.universum, set_words[i]) == NULL)){
+    for (int i = 0; i < w.count;i++){ // for cycle checks all parsed word of line
+        if((strstr(universum.universum, set_words[i]) == NULL)){ // if element is not in universum, returns false
             fprintf(stderr,"Word is not in universum");
             free_words(set_words,w);
             return false;
@@ -225,7 +225,7 @@ bool check_set_with_uni(char *line,Universum universum){
     free_words(set_words,w);
     return true;
 }
-
+// same as check_set_with_uni, difference is in different delim made specially for relation
 bool check_rel_with_uni(char *line,Universum universum){
     char *help_string = malloc(sizeof (char) * strlen(line)+1);
     strcpy(help_string,line);
