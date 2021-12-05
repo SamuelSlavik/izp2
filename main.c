@@ -18,21 +18,23 @@ typedef struct {
     int third;
 }Args;
 
-//parses words into 2d struct, use with struct that stores the number of words, having 2d array is pain in struct...
+//parses words into 2d array
 char **parse_words(char *string,Word_count *w){
-    char *help_string = malloc(strlen(string)+1);
-    strcpy(help_string,string);
+    char *help_string = malloc(strlen(string)+1);//allocates memory for help string
+    strcpy(help_string,string); // copies the passed string into help string
+    // help string is necessary, because strtok would change the string, and we need the string unchanged therefore we use the help string instead
     char **data = NULL;
     const char delim[2] = " \n";
     char *token;
-    int counter = 0;
-    token = strtok(help_string, delim);
+    int counter = 0; // counts the number of words created by strtok
+    // strtok parses the string, searches for delim, when it finds it, it store the string between either start, or previous delim in token
+    token = strtok(help_string, delim); // starts at the beginning
     while( token != NULL ) {
-        token = strtok(NULL, delim);
+        token = strtok(NULL, delim);//starts at the current delim , also skipsthe first word, which is either U or S
         if (token == NULL) break;
-        data = (char **) realloc(data, (counter + 1) * sizeof(data));
-        data[counter] = (char *)malloc(sizeof(char)*  strlen(token)+1);
-        strcpy(data[counter], token);
+        data = (char **) realloc(data, (counter + 1) * sizeof(data)); // allocs the number of columns of 2d array
+        data[counter] = (char *)malloc(sizeof(char)*  strlen(token)+1); // allocs the current row
+        strcpy(data[counter], token); // copies the token to current row
         counter++;
     }
     w->count = counter;
@@ -40,12 +42,12 @@ char **parse_words(char *string,Word_count *w){
     if (data == NULL) return 0;
     return data;
 }
-// similar to parse_words, but has different delim and delim has to be const( will not work otherwise ) so it can't be dealt with by mergin fucntions and simple (if set)delim =  else delim=
+// similar to parse_words, but has different delim and delim has to be const( will not work otherwise )
 char **parse_relation(char *string,Word_count *w){
     char *help_string = malloc(sizeof (char) * strlen(string)+1);
     strcpy(help_string,string);
     char **data = NULL;
-    const char delim[4] = " ()\n";
+    const char delim[4] = " ()\n"; //() are specific for relations
     char *token;
     int counter = 0;
     token = strtok(help_string, delim);
@@ -67,22 +69,21 @@ char **parse_relation(char *string,Word_count *w){
 bool check_relation(char *string){
     char *help_string = malloc(sizeof (char) * strlen(string)+1);
     strcpy(help_string,string);
-    //char **data = NULL;
     const char delim[4] = " \n";
     char *token;
     int counter = 0;
     token = strtok(help_string, delim);
     while( token != NULL ) {
-        token = strtok(NULL, delim);
+        token = strtok(NULL, delim); // skips the first word R
         if (token == NULL) break;
         if (counter%2 == 0){
-            if (token[0] != '('){
+            if (token[0] != '('){ // if even words do not have ( that means brackets do not match
                 free(help_string);
                 return false;
             }
         }
         if (counter%2 == 1){
-            if(token[strlen(token)-1] != ')'){
+            if(token[strlen(token)-1] != ')'){ //if odd words do not have ), it means brackets do not match
                 free(help_string);
                 return false;
             }
@@ -98,7 +99,7 @@ bool check_relation(char *string){
 bool is_number(char * str){
     int len = (int) strlen(str);
     for(int i =0 ; i< len;i++){
-        if(!(str[i]>='0' && str[i] <= '9') && (str[i] != '\n')){
+        if(!(str[i]>='0' && str[i] <= '9') && (str[i] != '\n')){ // if char is not a number or \n, returns false
             return false;
         }
     }
@@ -115,13 +116,13 @@ bool find_args(char *string,Args *arguments){
     char *ptr;
     token = strtok(help_str, delim);
     while (token != NULL) {
-        if (counter == 2){
+        if (counter == 2){  //the second word is the first argument
             arguments->first = (int)strtol(token,&ptr,10);
         }
-        if (counter == 3){
+        if (counter == 3){ // the third word is the second argument
             arguments->second = (int)strtol(token,&ptr,10);
         }
-        if (counter == 4){
+        if (counter == 4){// the fourth word is the second argument
             arguments->third  = (int)strtol(token,&ptr,10);
         }
         token = strtok(NULL, delim);
@@ -132,10 +133,10 @@ bool find_args(char *string,Args *arguments){
 }
 
 void free_words(char **data,Word_count w){
-    for(int i = 0; i <w.count;i++){
+    for(int i = 0; i <w.count;i++){ // frees all the rows
         free(data[i]);
     }
-    free(data);
+    free(data);// frees the whole array
 }
 
 bool duplicit(char *string){
@@ -147,7 +148,7 @@ bool duplicit(char *string){
     char *token;
     int counter = 0;
     token = strtok(help_string, delim);
-    if (strlen(token) != 1){
+    if (strlen(token) != 1){ // checks if the first word is only one letter to prevent cases like Ur
         fprintf(stderr,"wrong identifier");
         free(help_string);
         return false;
@@ -155,7 +156,7 @@ bool duplicit(char *string){
     while( token != NULL ) {
         token = strtok(NULL, delim);
         if (token == NULL) break;
-        if(strlen(token) > 30){
+        if(strlen(token) > 30){//checks if the words if longer than 30 character (limit)
             w.count = counter;
             if (data != NULL){
                 free_words(data,w);
@@ -170,12 +171,12 @@ bool duplicit(char *string){
         counter++;
     }
     w.count = counter;
-    if (data == NULL){
+    if (data == NULL){ // if no data were stored, return true because there are no duplicit in empty array
         free(help_string);
         free_words(data,w);
         return true;
     }
-    for(int i = 0; i <counter;i++){
+    for(int i = 0; i <counter;i++){     //checks all words with each other, if were are duplicates, returns false
         for(int j = i+1;j<counter;j++){
             if(!strcmp(data[i],data[j])){
                 free(help_string);
@@ -190,33 +191,32 @@ bool duplicit(char *string){
 }
 
 bool check_line(char *line){
-    size_t len = strlen(line);
+    size_t len = strlen(line); // finds the length of passed line
     for (size_t i = 0; i < len; i++) {
-        //10 je \n 32 space
-        if(line[i] > 'z') return false;
-        else if(line[i] < 10)return false;
-        else if(line[i] > 'Z' && line[i] < 'a')return false;
+        if(line[i] > 'z') return false; // if ascii value is greater than value of z returns false
+        else if(line[i] < 10)return false;// if ascii value is smaller than 10 returns false
+        else if(line[i] > 'Z' && line[i] < 'a')return false; // basically just checks it line consists only of lower&uppercase letters , numbers, spaces and \n
         else if( line[i] > 32 && line[i] < 'A')return false;
         else if(line[i] > 10 && line[i] < 32)return false;
         else if(line[i] >= '0' && line[i]<='9')return false;
     }
-    if (strstr(line, "true")|| strstr(line, "false")) return false;
+    if (strstr(line, "true")|| strstr(line, "false")) return false; // checks for the presence of words true and false
     return true;
 }
 bool check_words(char *line){
-    if(!check_line(line)){
+    if(!check_line(line)){ // calls a function that checks for invalid characters
         fprintf(stderr,"Wrong format");
         return false;
     }
-    if(!duplicit(line))return false;
+    if(!duplicit(line))return false; // calls a function that checks for duplicate words
     return true;
 }
-
+// checks if all elements of line  are in universum
 bool check_set_with_uni(char *line,Universum universum){
     Word_count w;
     char **set_words = parse_words(line,&w);
-    for (int i = 0; i < w.count;i++){
-        if((strstr(universum.universum, set_words[i]) == NULL)){
+    for (int i = 0; i < w.count;i++){ // for cycle checks all parsed word of line
+        if((strstr(universum.universum, set_words[i]) == NULL)){ // if element is not in universum, returns false
             fprintf(stderr,"Word is not in universum");
             free_words(set_words,w);
             return false;
@@ -225,7 +225,7 @@ bool check_set_with_uni(char *line,Universum universum){
     free_words(set_words,w);
     return true;
 }
-
+// same as check_set_with_uni, difference is in different delim made specially for relation
 bool check_rel_with_uni(char *line,Universum universum){
     char *help_string = malloc(sizeof (char) * strlen(line)+1);
     strcpy(help_string,line);
@@ -245,15 +245,19 @@ bool check_rel_with_uni(char *line,Universum universum){
     free(help_string);
     return true;
 }
-
-bool card(char **data,Args arguments){
+/***
+ *
+ * @param data array of strings with all stored lines
+ * @param arguments for the operation
+ * prints the number of words in relation
+ */
+void card(char **data,Args arguments){
     Word_count w;
     char **words = parse_words(data[arguments.first], &w);
     printf("%d", w.count);
     free_words(words,w);
-    return true;
 }
-
+// prints true if array is empty
 bool empty(char **data, Args arguments){
     const char delim[4] = " \n";
     char * string = malloc(sizeof (char)* strlen(data[arguments.first])+1);
@@ -267,12 +271,14 @@ bool empty(char **data, Args arguments){
     free(string);
     return true;
 }
+
 bool complement(char **data, Args arguments) {
-    //prints words that are not in universum
     Word_count w;
+    //parses elements of universum into an array of string
     char **universum = parse_words(data[1], &w);
     printf("S ");
     for(int i = 0; i <w.count;i++){
+        //prints elements of universum that are not in set
         if(strstr(data[arguments.first],universum[i])== NULL)printf("%s ", universum[i]);
     }
     free_words(universum,w);
@@ -281,16 +287,19 @@ bool complement(char **data, Args arguments) {
 
 bool union_f(char **data, Args arguments){
     Word_count first_w; //to store how many words sets have
+    //parses elements of first set into an array of string
     char **first_words= NULL;
     first_words = parse_words(data[arguments.first],&first_w);
     Word_count sec_w;
     char **second_words = NULL;
     printf("S ");
     for (int i = 0;i <first_w.count;i++){
+        // prints if element of 1st set  is not in second
         if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
     }
     second_words = parse_words(data[arguments.second],&sec_w);
     for (int i = 0; i < sec_w.count; i++) {
+        // prints the second set
         printf("%s ", second_words[i]);
     }
     free_words(first_words,first_w);
@@ -303,25 +312,28 @@ bool intersect(char ** data, Args arguments){
     first_words = parse_words(data[arguments.first],&first_w);
     printf("S ");
     for (int i = 0;i < first_w.count;i++){
+        //prints if elements is in both sets
         if(strstr(data[arguments.second], first_words[i]) != NULL) printf("%s ", first_words[i]);
     }
     free_words(first_words,first_w);
     return true;
 }
 bool minus(char **data, Args arguments){
-    Word_count first_w; //to store how many words sets have
+    Word_count first_w;
     char **first_words= NULL;
     first_words = parse_words(data[arguments.first],&first_w);
     printf("S ");
     for (int i = 0; i < first_w.count;i++){
+        //prints the element if it is not in the second set
         if(strstr(data[arguments.second], first_words[i]) == NULL) printf("%s ", first_words[i]);
     }
     free_words(first_words,first_w);
     return true;
 }
 bool subseteq(char **data, Args arguments){
-    Word_count first_w; //to store how many words sets have
+    Word_count first_w;
     char **first_words= NULL;
+    //prints true if sets are identical
     if (!strcmp(data[arguments.first],data[arguments.second])){
         printf("true");
         return true;
@@ -329,9 +341,11 @@ bool subseteq(char **data, Args arguments){
     first_words = parse_words(data[arguments.first],&first_w);
     int counter = 0;
     for(int i = 0;i < first_w.count;i++){
+        //increments counter  if element is present in second set
         if(strstr(data[arguments.second], first_words[i]) != NULL)counter++;
     }
     free_words(first_words,first_w);
+    //prints true if all elements of 1st set are present in 2nd
     if(counter == first_w.count)printf("true");
     else printf("false");
     return true;
@@ -343,30 +357,29 @@ bool subset(char **data, Args arguments){
     first_words = parse_words(data[arguments.first],&first_w);
     bool elements = true;
     for (int i = 0; i < first_w.count;i++){
+        //increments counter  if element is present in second set
         if (strstr(data[arguments.second], first_words[i]) != NULL)counter++;
         else elements = false;
     }
     char **sec_words= NULL;
     Word_count  sec_w;
     sec_words = parse_words(data[arguments.second],&sec_w);
-    /*if (first_w.count){
-        for (int i = 0; i < sec_w.count;i++){
-            if (strstr(data[arguments.first], sec_words[i]) != NULL)elements = false;
-        }
-    }*/
     free_words(first_words,first_w);
     free_words(sec_words,sec_w);
+    //false if some element of 1st set is not in 2nd
     if (!elements)printf("false");
+        //prints true if either there are more elements of 2nd set than 1st or first set is empty and second is not
     else if((counter < sec_w.count && counter != 0) || (first_words == 0 && sec_words != 0))printf("true");
     else printf("false");
     return true;
 }
 bool equals(char **data, Args arguments){
-    Word_count first_w; //to store how many words sets have
+    Word_count first_w;
     char **first_words= NULL;
     first_words = parse_words(data[arguments.first],&first_w);
     int counter = 0;
     for(int i = 0; i < first_w.count;i++){
+        //increments counter  if element is present in second set
         if(strstr(data[arguments.second], first_words[i]) != NULL) {
             counter++;
         }
@@ -376,8 +389,11 @@ bool equals(char **data, Args arguments){
     sec_words = parse_words(data[arguments.second],&sec_w);
     free_words(first_words,first_w);
     free_words(sec_words,sec_w);
+    //prints true if both sets are empty
     if (!first_w.count && !sec_w.count)printf("true");
+        //prints false if only one set is empty
     else if(!first_w.count || !sec_w.count)printf("false");
+        // prints true if all elements are in both sets
     else if(counter == sec_w.count)printf("true");
     else printf("false");
     return true;
