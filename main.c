@@ -770,7 +770,7 @@ void codomain(char **data, Args arguments){
 }
 
 void injective(char **data, Args arguments){
-    printf("injective: ");
+    printf("bijective: ");
     Word_count count;
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
@@ -790,44 +790,31 @@ void injective(char **data, Args arguments){
         array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));
 
         if (i % 2 == 0) {
-            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
-            strcpy(array[index], words[i]);
-            array2[index] = (char *) malloc(sizeof(char) * strlen(words[i + 1])+1);
-            strcpy(array2[index], words[i + 1]);
-            index++;
+            if(findInArray(words, index, array, i) == true){
+
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
+                strcpy(array[index], words[i]);
+                printf("%s ", array[index]);
+                index++;
+            }
+            
+        }
+
+        if (i % 2 != 0) {
+            if(findInArray(words, index, array, i) == true){
+
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
+                strcpy(array[index], words[i]);
+                printf("%s ", array[index]);
+                index2++;
+            }
+            
         }
     }
 
-    while (words[counter] != NULL) {
-        array = (char **) realloc(array, ( index + 1) * sizeof(*array));
-        array2 = (char **) realloc(array2, ( index + 1) * sizeof(*array2));
- 
-        if(findInArray(words, size, array, counter) == true){ // FIR vraci T / F na unikatni prvky
+    if(index <= index2){printf("true");}
+    else{printf("false");}
 
-            array[index2] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
-            strcpy(array[index2], words[counter]);
-            size++;
-            index2++;
-            uniqX++;
-        }
-
-        if(findInArray(words, size2, array, counter) == true){ 
-
-            array2[index3] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
-            strcpy(array[index3], words[counter]);
-            size2++;
-            index3++;
-            uniqY++;
-        }
-
-        counter++;
-    }
-
-    if (uniqX <= uniqY) {
-        printf("true");
-    } else {
-        printf("false");
-    }
     int i = 0;
     while(i != size){
         free(array[i]);
@@ -839,72 +826,38 @@ void injective(char **data, Args arguments){
     free_words(words, count);
 }
 void surjetive(char **data, Args arguments){
-    printf("surjective: ");
     Word_count count;
     char **words= NULL;
     words = parse_relation(data[arguments.first], &count);
     char **array = NULL;
-    char **array2 = NULL;
-    int size = 0;
-    int size2 =0;
     int index = 0;
-    int index2 = 0;
-    int index3 = 0;
-    int uniqX = 0;
-    int uniqY = 0;
-    int counter = 0;
-
-    for (int i = 0; i < count.count; i++) {
-        array = (char **) realloc(array, (index + 1) * sizeof(*array));
-        array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));
-
-        if (i % 2 == 0) {
-            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
-            strcpy(array[index], words[i]);
-            array2[index] = (char *) malloc(sizeof(char) * strlen(words[i + 1])+1);
-            strcpy(array2[index], words[i + 1]);
-            index++;
-        }
-    }
-
-    while (words[counter] != NULL) {
+    int help = 0;
+    for (int i = 0; i < count.count; i++)
+    {
         array = (char **) realloc(array, ( index + 1) * sizeof(*array));
-        array2 = (char **) realloc(array2, ( index + 1) * sizeof(*array2));
- 
-        if(findInArray(words, size, array, counter) == true){ // FIR vraci T / F na unikatni prvky
+        //array[index] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
 
-            array[index2] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
-            strcpy(array[index2], words[counter]);
-            size++;
-            index2++;
-            uniqX++;
+        if (i%2 == 0)
+        {
+            while(findInArray(words, index, array, i) != false){
+                help++;
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
+                strcpy(array[index], words[i]);
+                index++;
+            }
         }
-
-        if(findInArray(words, size2, array, counter) == true){ 
-
-            array2[index3] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
-            strcpy(array[index3], words[counter]);
-            size2++;
-            index3++;
-            uniqY++;
-        }
-
-        counter++;
     }
+    
+    if(index != count.count/2){printf("false");}
+    else{printf("true");}
 
-    if (uniqX >= uniqY) {
-        printf("true");
-    } else {
-        printf("false");
-    }
     int i = 0;
-    while(i != size){
+    while(i != index){
         free(array[i]);
-        free(array2[i]);
         i++;
     }
+   
     free(array);
-    free(array2);
     free_words(words, count);
 }
 void bijective(char **data, Args arguments){
@@ -928,44 +881,30 @@ void bijective(char **data, Args arguments){
         array2 = (char **) realloc(array2, (index + 1) * sizeof(*array2));
 
         if (i % 2 == 0) {
-            array[index] = (char *) malloc(sizeof(char) * strlen(words[i])+1);
-            strcpy(array[index], words[i]);
-            array2[index] = (char *) malloc(sizeof(char) * strlen(words[i + 1])+1);
-            strcpy(array2[index], words[i + 1]);
-            index++;
+            if(findInArray(words, index, array, i) == true){
+
+                array[index] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
+                strcpy(array[index], words[i]);
+                printf("%s ", array[index]);
+                index++;
+            }
+            
+        }
+
+        if (i % 2 != 0) {
+            if(findInArray(words, index2, array2, i) == true){
+
+                array2[index2] = (char *)malloc(sizeof(char)*  strlen(words[i])+1);
+                strcpy(array2[index2], words[i]);
+                printf("%s ", array2[index2]);
+                index2++;
+            }
+            
         }
     }
 
-    while (words[counter] != NULL) {
-        array = (char **) realloc(array, ( index + 1) * sizeof(*array));
-        array2 = (char **) realloc(array2, ( index + 1) * sizeof(*array2));
- 
-        if(findInArray(words, size, array, counter) == true){
+    
 
-            array[index2] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
-            strcpy(array[index2], words[counter]);
-            size++;
-            index2++;
-            uniqX++;
-        }
-
-        if(findInArray(words, size2, array, counter) == true){ 
-
-            array2[index3] = (char *)malloc(sizeof(char)*  strlen(words[counter]));
-            strcpy(array[index3], words[counter]);
-            size2++;
-            index3++;
-            uniqY++;
-        }
-
-        counter++;
-    }
-
-    if (uniqX == uniqY) {
-        printf("true");
-    } else {
-        printf("false");
-    }
     int i = 0;
     while(i != size){
         free(array[i]);
@@ -975,6 +914,14 @@ void bijective(char **data, Args arguments){
     free(array);
     free(array2);
     free_words(words, count);
+
+    if(index != count.count/2){printf("false"); return;}
+    
+
+    if(index2 != count.count/2){printf("false"); return;}
+    
+    if(index != index2){printf("false"); return;}
+    else{printf("true"); return;}
 }
 //bonus
 void closure_ref(char *line){ printf("works");}
