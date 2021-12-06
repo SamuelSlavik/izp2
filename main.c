@@ -1290,6 +1290,7 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
     char **data = NULL;
     int index = 1;
     data = (char **) malloc((index + 1) * sizeof(*data));
+    data[0] = malloc(sizeof (char));
     bool is_RS =false; // to check if relation or set is present
     while ((getline(&line, &len, fp) != -1) && error == false){ // reads 1 line from the document, stores it in line, stores it's length in len
         //allocs memory for data and load the current line
