@@ -1273,6 +1273,7 @@ void print_results(char ** data, int counter, int first_op_index){
         is_first = false;
         print_commands(data[index],data);
     }
+
 }
 
 bool check_document(FILE *fp,char  **argv, Universum universum){
@@ -1290,8 +1291,8 @@ bool check_document(FILE *fp,char  **argv, Universum universum){
     char **data = NULL;
     int index = 1;
     data = (char **) malloc((index + 1) * sizeof(*data));
-    data[0] = malloc(sizeof (char));
     bool is_RS =false; // to check if relation or set is present
+    data[0] = malloc(1);
     while ((getline(&line, &len, fp) != -1) && error == false){ // reads 1 line from the document, stores it in line, stores it's length in len
         //allocs memory for data and load the current line
         data = (char **) realloc(data, (index + 1) * sizeof(*data)); // reallocs the column size to match the current iteration
